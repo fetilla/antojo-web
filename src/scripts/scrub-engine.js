@@ -87,7 +87,10 @@ function mountScrollWorld(container, config) {
   // ---- build the interleaved segment chain: dive0, conn0, dive1, … diveN-1 ----
   const SEGMENTS = [];
   SECTIONS.forEach((s, i) => {
+    // Antojo: `travel` (0..1) = share of the section's scroll spent flying to its
+    // subject; the rest holds on the clip's last frame while the copy is shown.
     const dive = { kind: 'dive', si: i, clip: s.clip, clipM: s.clipMobile, still: s.still, stillM: s.stillMobile,
+                   travel: s.travel || 0,
                    accent: s.accent, w: s.scroll || DIVE_W, linger: s.linger || 0 };
     SEGMENTS.push(dive);
     s._seg = dive;
@@ -176,6 +179,7 @@ function mountScrollWorld(container, config) {
   // Per-section dwell: monotone remap of scroll→time so the camera settles mid-scene
   // (where the copy peaks) and moves quicker near the seams. L=0 linear, L=1 full
   // mid-scene pause. f(0)=0, f(1)=1 always, so seam frames are untouched.
+  const easeOutQuad = x => 1 - (1 - x) * (1 - x);
   const lingerEase = (x, L) => { L = clamp(L); const c = x - 0.5; return (1 - L) * x + L * (4 * c * c * c + 0.5); };
   let vh = window.innerHeight, stageX = 0, totalW = 0, activeIndex = -1, ticking = false;
   // Antojo: everything is driven by a smoothed scroll position (ys) that glides
@@ -213,7 +217,9 @@ function mountScrollWorld(container, config) {
 
   function jumpTo(i, opts = {}) {
     const seg = SECTIONS[i]._seg;
-    const top = Math.round(opts.top != null ? opts.top : seg.start + (seg.end - seg.start) * 0.5);
+    // land in the middle of the section's hold (camera stopped on its subject)
+    const hold = seg.travel + (1 - seg.travel) * 0.5;
+    const top = Math.round(opts.top != null ? opts.top : seg.start + (seg.end - seg.start) * hold);
     const from = window.scrollY || window.pageYOffset;
     ys = from;
     if (jump) cancelAnimationFrame(jump.raf);
@@ -270,7 +276,8 @@ function mountScrollWorld(container, config) {
       const s = SEGMENTS[i];
       if (y > s.start - 1.6 * vh && y < s.end + 1.6 * vh) loadClip(s);
       const local = clamp((y - s.start) / (s.end - s.start), 0, 1);
-      s.target = s.linger ? lingerEase(local, s.linger) : local;
+      if (s.travel) s.target = local < s.travel ? easeOutQuad(local / s.travel) : 1;
+      else s.target = s.linger ? lingerEase(local, s.linger) : local;
       let outside = 0;
       if (y < s.start) outside = s.start - y; else if (y > s.end) outside = y - s.end;
       // Antojo: the last scene stays as the backdrop while the page content scrolls over it.
@@ -291,9 +298,11 @@ function mountScrollWorld(container, config) {
       // Antojo: the copy holds at full opacity for most of its section and only
       // fades over a short band (COPY_FADE) at each edge, so there is time to read it.
       let cop;
+      // copy fades in as the camera arrives (end of travel) and holds until the next flight
+      const arrive = seg.travel ? seg.travel * 0.9 : 0;
       if (i === 0) cop = after ? 0 : smooth((1 - pr) / COPY_FADE);           // greets on landing
-      else if (i === N - 1) cop = before ? 0 : smooth(pr / COPY_FADE);       // holds CTA at the end
-      else cop = (before || after) ? 0 : smooth(Math.min(pr, 1 - pr) / COPY_FADE);
+      else if (i === N - 1) cop = before ? 0 : smooth((pr - arrive) / COPY_FADE);   // holds CTA at the end
+      else cop = (before || after) ? 0 : smooth(Math.min(pr - arrive, 1 - pr) / COPY_FADE);
       if (jump && i !== jump.i && i !== jump.from) cop = 0;
       const c = copies[i];
       setStyle(c, 'opacity', cop.toFixed(3));

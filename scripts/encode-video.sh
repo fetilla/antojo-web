@@ -23,11 +23,13 @@ cut() { # nombre primer_fotograma ultimo_fotograma
   ffmpeg -v error -y -i "$SRC" -vf "select=eq(n\,$2),scale=1280:-2" -frames:v 1 -q:v 7 "$POS/$1-m.jpg"
 }
 
-cut s0-entrada   0   120
-cut s1-nosotros  120 240
-cut s2-carta     240 360
-cut s3-cocina    360 480
-cut s4-ninos     480 720
+# Cada tramo TERMINA en el elemento de su sección: la cámara viaja hasta él y se
+# para ahí mientras se ve la tarjeta (ver `travel` en src/data/content.ts).
+cut s0-entrada   0   24    # fachada (leve acercamiento)
+cut s1-nosotros  24  120   # → mapamundi
+cut s2-carta     120 360   # → vista del fondo → pared de fotos
+cut s3-cocina    360 480   # → mural de los ojos
+cut s4-ninos     480 720   # → esquina → cruza el arco → rincón infantil
 
 ls -lh "$OUT" "$POS"
 

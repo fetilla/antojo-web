@@ -31,7 +31,7 @@ export const secciones = [
     eyebrow: 'Bar Antojo · Utiel',
     title: 'Date el gusto, en familia',
     body: 'Comida callejera de medio mundo hecha con humo, brasa y paciencia. Tú disfrutas en la mesa y los peques en su zona.',
-    scroll: 0.42,
+    scroll: 0.3,
     linger: 0,
     cta: {
       primary: { label: 'Cómo llegar', href: contacto.mapsHref },
@@ -46,8 +46,9 @@ export const secciones = [
     eyebrow: 'Nosotros',
     title: 'Cocina viajada, servida en casa',
     body: 'Antojo surge de la pasión por la cocina de una familia que, habiendo trabajado alrededor del mundo en diferentes restaurantes, decide entregar lo aprendido a su gente. Pensando en los pequeños de la casa: un sitio familiar y a la vez canalla.',
-    scroll: 0.45,
+    scroll: 0.62,
     linger: 0,
+    travel: 0.5,
   },
   {
     id: 'carta',
@@ -57,8 +58,9 @@ export const secciones = [
     eyebrow: 'Carta',
     title: 'Sabores con pasaporte',
     body: 'Pincha para ver nuestros sabores más callejeros.',
-    scroll: 0.5,
+    scroll: 0.75,
     linger: 0,
+    travel: 0.55,
   },
   {
     id: 'cocina',
@@ -68,8 +70,9 @@ export const secciones = [
     eyebrow: 'Cocina',
     title: 'Street world food',
     body: 'Nos centramos en sabores que llamamos street world food: fuego, humo y técnica para una cocina con carácter.',
-    scroll: 0.55,
+    scroll: 0.62,
     linger: 0,
+    travel: 0.5,
   },
   {
     id: 'ninos',
@@ -81,6 +84,7 @@ export const secciones = [
     body: 'Trae a tu familia a disfrutar. Los peques tienen su rincón para jugar mientras tú comes con calma.',
     scroll: 0.85,
     linger: 0,
+    travel: 0.55,
     cta: {
       primary: { label: 'Contáctanos', href: '#contacto' },
       secondary: { label: 'Escríbenos por WhatsApp', href: contacto.whatsappHref },
