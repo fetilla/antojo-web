@@ -178,14 +178,20 @@ import { secciones } from '../data/content';
     }
   }
 
-  /* Móvil vertical: no hay versión 9:16, así que el vídeo ocupa la parte superior
-     (recorte mucho menor que a pantalla completa) y el texto va debajo. */
+  /* Móvil vertical: el vídeo va a pantalla completa con su versión vertical (-m.mp4,
+     recorte 9:16) y la tarjeta se superpone abajo, compacta. */
   @media (max-width: 860px) and (orientation: portrait) {
-    /* svh: alto fijo; con dvh la zona del vídeo cambia de tamaño mientras la barra
-       de direcciones aparece y desaparece, y el vídeo se redimensiona al hacer scroll. */
+    /* svh: alto fijo; con dvh el vídeo se redimensiona mientras la barra de
+       direcciones aparece y desaparece al hacer scroll. Subido un 14 % para que lo
+       importante (a media altura) quede por encima de la tarjeta. */
     .world .sw-stage {
+      top: -14svh;
       bottom: auto;
-      height: 60svh;
+      height: 100svh;
+    }
+    .world .sw-scene__video,
+    .world .sw-scene__still {
+      object-position: center center;
     }
     .world .sw-copy {
       bottom: calc(80px + env(safe-area-inset-bottom));

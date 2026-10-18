@@ -427,7 +427,9 @@ function mountScrollWorld(container, config) {
       if (Math.abs(real - ys) < 0.5) ys = real;
     }
     if (ys !== lastRead) { lastRead = ys; read(); }
-    const eps = isMobile() ? 0.02 : 0.008;   // coarser seek step on phones = fewer decodes
+    // Antojo: on phones only seek once the target moves a whole frame (24 fps), so the
+    // decoder isn't asked for the same frame again on every display refresh.
+    const eps = isMobile() ? 0.042 : 0.008;
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
       if (!s.hasClip || !s.ready || !s.video) continue;
