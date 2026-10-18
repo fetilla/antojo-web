@@ -1,0 +1,106 @@
+---
+// Ventana con un clip corto en bucle (p. ej. el ahumador de la sección Cocina).
+// main.ts rellena título, vídeo y póster según la etiqueta pulsada.
+import Icon from './Icon.astro';
+---
+
+<dialog class="media" aria-labelledby="media-title" data-media>
+  <div class="media__panel">
+    <header class="media__head">
+      <h2 id="media-title" data-media-title>Antojo</h2>
+      <button class="media__close" type="button" data-media-close aria-label="Cerrar el vídeo">
+        <Icon name="close" />
+      </button>
+    </header>
+    <video class="media__video" muted loop playsinline preload="none" data-media-video></video>
+  </div>
+</dialog>
+
+<style>
+  .media {
+    width: auto;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100svh - 32px);
+    margin: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 24px;
+    background: var(--burdeos);
+    color: var(--crema);
+    opacity: 0;
+    transform: translateY(32px) scale(0.98);
+    transition:
+      opacity 700ms var(--ease),
+      transform 700ms var(--ease),
+      overlay 700ms var(--ease) allow-discrete,
+      display 700ms var(--ease) allow-discrete;
+  }
+
+  .media[open] {
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    .media[open] {
+      opacity: 0;
+      transform: translateY(32px) scale(0.98);
+    }
+  }
+
+  .media::backdrop {
+    background: color-mix(in srgb, #000 70%, transparent);
+  }
+
+  .media__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .media__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-left: 8px;
+  }
+
+  .media__head h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+    color: var(--celeste);
+  }
+
+  .media__close {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--crema) 14%, transparent);
+    color: var(--crema);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: background-color 700ms var(--ease);
+  }
+
+  .media__close:hover {
+    background: color-mix(in srgb, var(--crema) 24%, transparent);
+  }
+
+  .media__video {
+    display: block;
+    width: auto;
+    height: min(70svh, 640px);
+    max-width: 100%;
+    aspect-ratio: 9 / 16;
+    object-fit: cover;
+    border-radius: 8px;
+    background: var(--burdeos-900);
+  }
+</style>

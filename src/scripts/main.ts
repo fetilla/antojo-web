@@ -194,6 +194,35 @@ zoomBtn?.addEventListener('click', () => {
   zoomBtn.setAttribute('aria-pressed', String(!zoomed));
 });
 
+// ---- Clip en bucle (etiqueta Ahumador) ----
+const media = document.querySelector<HTMLDialogElement>('[data-media]');
+const mediaVideo = media?.querySelector<HTMLVideoElement>('[data-media-video]');
+let mediaTrigger: HTMLElement | null = null;
+
+document.addEventListener('click', (event) => {
+  const trigger = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-open-media]');
+  if (!trigger || !media || !mediaVideo) return;
+  mediaTrigger = trigger;
+  media.querySelector('[data-media-title]')!.textContent = trigger.dataset.mediaTitle ?? '';
+  mediaVideo.setAttribute('aria-label', trigger.dataset.mediaAlt ?? '');
+  mediaVideo.poster = trigger.dataset.mediaPoster ?? '';
+  if (mediaVideo.getAttribute('src') !== trigger.dataset.openMedia) mediaVideo.src = trigger.dataset.openMedia!;
+  media.showModal();
+  mediaVideo.currentTime = 0;
+  // Con movimiento reducido no arranca solo: se muestran los controles
+  if (reduce) mediaVideo.controls = true;
+  else mediaVideo.play().catch(() => {});
+});
+
+media?.querySelector('[data-media-close]')?.addEventListener('click', () => media.close());
+media?.addEventListener('click', (event) => {
+  if (event.target === media) media.close();
+});
+media?.addEventListener('close', () => {
+  mediaVideo?.pause();
+  mediaTrigger?.focus();
+});
+
 // ---- Revelados al entrar en pantalla ----
 const revealObserver = new IntersectionObserver(
   (entries) => {

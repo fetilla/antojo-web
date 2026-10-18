@@ -103,7 +103,17 @@ export const etiquetas = {
 } as const;
 
 export const cocina = [
-  { label: 'Ahumador', icon: 'campfire' },
+  {
+    label: 'Ahumador',
+    icon: 'campfire',
+    // Al pulsar la etiqueta se abre este clip en bucle
+    media: {
+      title: 'Así sale del ahumador',
+      src: '/media/ahumador.mp4',
+      poster: '/media/ahumador-poster.jpg',
+      alt: 'Se abre la tapa del ahumador y aparece una pieza de panceta ahumándose',
+    },
+  },
   { label: 'Horno de brasas', icon: 'fire' },
   { label: 'Baja temperatura sous vide', icon: 'thermometer' },
   { label: 'Tacos', icon: 'pepper' },

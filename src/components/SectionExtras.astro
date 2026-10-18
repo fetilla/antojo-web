@@ -4,6 +4,7 @@
 // <template data-extra="id"> a su sección.
 import Icon from './Icon.astro';
 import { cocina, etiquetas } from '../data/content';
+import { url } from '../lib/url';
 ---
 
 <template data-extra="nosotros">
@@ -56,12 +57,30 @@ import { cocina, etiquetas } from '../data/content';
 <template data-extra="cocina">
   <ul class="chips chips--kitchen" role="list">
     {
-      cocina.map((c) => (
-        <li class="chip">
-          <Icon name={c.icon} />
-          {c.label}
-        </li>
-      ))
+      cocina.map((c) =>
+        'media' in c ? (
+          <li>
+            <button
+              class="chip chip--toggle chip--media"
+              type="button"
+              aria-haspopup="dialog"
+              data-open-media={url(c.media.src)}
+              data-media-poster={url(c.media.poster)}
+              data-media-title={c.media.title}
+              data-media-alt={c.media.alt}
+            >
+              <Icon name={c.icon} />
+              {c.label}
+              <Icon name="play" class="chip__play" />
+            </button>
+          </li>
+        ) : (
+          <li class="chip">
+            <Icon name={c.icon} />
+            {c.label}
+          </li>
+        ),
+      )
     }
   </ul>
 </template>
@@ -115,6 +134,10 @@ import { cocina, etiquetas } from '../data/content';
 
   .chip--toggle:active {
     transform: scale(0.98);
+  }
+
+  .chip--media {
+    background: color-mix(in srgb, var(--sw-accent) 34%, transparent);
   }
 
   .chip--toggle .chip__caret {

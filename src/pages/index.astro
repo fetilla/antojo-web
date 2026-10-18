@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import WhatsAppFab from '../components/WhatsAppFab.astro';
 import CartaDialog from '../components/CartaDialog.astro';
+import MediaDialog from '../components/MediaDialog.astro';
 import SectionExtras from '../components/SectionExtras.astro';
 import Tagline from '../components/Tagline.astro';
 import Contact from '../components/Contact.astro';
@@ -27,6 +28,7 @@ import { secciones } from '../data/content';
   <Footer />
   <WhatsAppFab />
   <CartaDialog />
+  <MediaDialog />
   <SectionExtras />
 </Layout>
 
@@ -153,9 +155,13 @@ import { secciones } from '../data/content';
       translate: none;
       bottom: calc(88px + env(safe-area-inset-bottom));
       width: auto;
-      max-height: calc(100dvh - 200px);
+      max-height: calc(100svh - 200px);
       overflow-y: auto;
       padding: 24px;
+      /* desenfocar el vídeo que cambia en cada fotograma es muy caro en móvil */
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: var(--burdeos);
     }
     .world .sw-copy__title {
       font-size: 1.875rem;
@@ -177,13 +183,15 @@ import { secciones } from '../data/content';
   /* Móvil vertical: no hay versión 9:16, así que el vídeo ocupa la parte superior
      (recorte mucho menor que a pantalla completa) y el texto va debajo. */
   @media (max-width: 860px) and (orientation: portrait) {
+    /* svh: alto fijo; con dvh la zona del vídeo cambia de tamaño mientras la barra
+       de direcciones aparece y desaparece, y el vídeo se redimensiona al hacer scroll. */
     .world .sw-stage {
       bottom: auto;
-      height: 60dvh;
+      height: 60svh;
     }
     .world .sw-copy {
       bottom: calc(80px + env(safe-area-inset-bottom));
-      max-height: calc(48dvh - 16px);
+      max-height: calc(48svh - 16px);
       padding: 16px;
       border-radius: 16px;
     }

@@ -182,7 +182,9 @@ function mountScrollWorld(container, config) {
   // toward the real one, so each mouse-wheel notch becomes a short glide instead
   // of a hard jump of video, copy and crossfades.
   let ys = window.scrollY || window.pageYOffset, lastRead = NaN, lastT = performance.now();
-  const SMOOTH = coarse ? 0.2 : 0.12;   // share of the remaining distance per 60 Hz frame
+  // Touch scrolling already has native momentum: smoothing on top of it feels like
+  // the video drifts behind the finger, so phones follow the real position.
+  const SMOOTH = coarse ? 1 : 0.12;   // share of the remaining distance per 60 Hz frame
   let laidOutW = window.innerWidth;   // width the current layout was computed at (see onResize)
 
   function layout() {
@@ -274,11 +276,11 @@ function mountScrollWorld(container, config) {
       // Antojo: the last scene stays as the backdrop while the page content scrolls over it.
       if (i === NSEG - 1 && y > s.end) outside = 0;
       const op = smooth(1 - outside / fade);
-      s.el.style.opacity = op; s.visible = op > 0.001;
-      s.el.style.zIndex = (i === ci) ? '120' : String(100 + Math.round(op * 10));
+      setStyle(s.el, 'opacity', op.toFixed(3)); s.visible = op > 0.001;
+      setStyle(s.el, 'zIndex', (i === ci) ? '120' : String(100 + Math.round(op * 10)));
       if (!s.hasClip || !s.ready) {
         const sc = reduce ? 1 : 1.03 + local * 0.14;
-        s.img.style.transform = `translateX(${stageX - 2}vw) scale(${sc.toFixed(3)})`;
+        setStyle(s.img, "transform", `translateX(${stageX - 2}vw) scale(${sc.toFixed(3)})`);
       }
     }
 
@@ -294,11 +296,11 @@ function mountScrollWorld(container, config) {
       else cop = (before || after) ? 0 : smooth(Math.min(pr, 1 - pr) / COPY_FADE);
       if (jump && i !== jump.i && i !== jump.from) cop = 0;
       const c = copies[i];
-      c.style.opacity = cop;
-      c.style.transform = reduce ? 'none' : `translateY(${(0.5 - pr) * 2}vh)`;
-      c.style.pointerEvents = cop > 0.5 ? 'auto' : 'none';
+      setStyle(c, 'opacity', cop.toFixed(3));
+      setStyle(c, 'transform', reduce ? 'none' : `translateY(${((0.5 - pr) * 2).toFixed(2)}vh)`);
+      setStyle(c, 'pointerEvents', cop > 0.5 ? 'auto' : 'none');
       // Antojo: hidden copies must not catch clicks or keyboard focus (they all overlap).
-      c.style.visibility = cop > 0.01 ? 'visible' : 'hidden';
+      setStyle(c, 'visibility', cop > 0.01 ? 'visible' : 'hidden');
     }
 
     const cur = SEGMENTS[ci];
@@ -312,8 +314,8 @@ function mountScrollWorld(container, config) {
       // Antojo: notify the page so its own nav can mark the current section.
       if (typeof config.onSection === 'function') config.onSection(near);
     }
-    scrollbarFill.style.transform = `scaleX(${clamp(y / (totalW * vh))})`;
-    hint.style.opacity = clamp(1 - y / (0.5 * vh));
+    setStyle(scrollbarFill, 'transform', `scaleX(${clamp(y / (totalW * vh)).toFixed(4)})`);
+    setStyle(hint, 'opacity', clamp(1 - y / (0.5 * vh)).toFixed(3));
     if (particles) particles.style.transform = `translate3d(0, ${-y * 0.05}px, 0)`;
     ticking = false;
   }
@@ -385,6 +387,11 @@ function mountScrollWorld(container, config) {
   return { jumpTo, count: N };
 
   // ---- helpers ----
+  // Antojo: only touch the DOM when a value actually changes (read() runs every frame).
+  function setStyle(node, prop, val) {
+    const c = node.__sw || (node.__sw = {});
+    if (c[prop] !== val) { c[prop] = val; node.style[prop] = val; }
+  }
   function el(tag, cls) { const n = document.createElement(tag); if (cls) n.className = cls; return n; }
   function pad(n) { return String(n).padStart(2, '0'); }
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
