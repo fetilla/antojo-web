@@ -1,0 +1,61 @@
+---
+import { url } from '../lib/url';
+import Layout from '../layouts/Layout.astro';
+import Logo from '../components/Logo.astro';
+import Footer from '../components/Footer.astro';
+import { contacto } from '../data/content';
+---
+
+<Layout title="Privacidad · Antojo" description="Información sobre privacidad de la web de Antojo en Utiel.">
+  <main id="contenido" class="legal">
+    <a class="legal__home" href={url('/')} aria-label="Volver a la página principal de Antojo"><Logo /></a>
+    <h1>Privacidad</h1>
+    <p>
+      Esta web es informativa. No tiene formularios, no pide datos personales y no instala cookies
+      propias ni de terceros para analítica o publicidad.
+    </p>
+    <h2>Enlaces a otros servicios</h2>
+    <p>
+      Los botones de WhatsApp, Instagram y Google Maps te llevan a esos servicios. Lo que compartas
+      allí se rige por sus propias políticas de privacidad. Si nos escribes por WhatsApp, usamos
+      tu número y tu mensaje solo para responderte.
+    </p>
+    <h2>Contacto</h2>
+    <p>
+      Antojo, {contacto.direccion}, {contacto.localidad}. Teléfono
+      <a href={contacto.telefonoHref}>{contacto.telefono}</a>.
+    </p>
+    <a class="btn btn--primary" href={url('/')}>Volver al inicio</a>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .legal {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 48px 16px 96px;
+  }
+  .legal__home {
+    display: inline-flex;
+    text-decoration: none;
+    margin-bottom: 48px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 3rem;
+    line-height: 1;
+  }
+  h2 {
+    margin: 32px 0 0;
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  p {
+    margin: 12px 0 0;
+    color: var(--crema-soft);
+  }
+  .btn {
+    margin-top: 48px;
+  }
+</style>

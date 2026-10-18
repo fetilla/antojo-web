@@ -1,11 +1,209 @@
 ---
-import Welcome from '../components/Welcome.astro';
+import { url } from '../lib/url';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Header from '../components/Header.astro';
+import WhatsAppFab from '../components/WhatsAppFab.astro';
+import CartaDialog from '../components/CartaDialog.astro';
+import SectionExtras from '../components/SectionExtras.astro';
+import Tagline from '../components/Tagline.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+import { secciones } from '../data/content';
 ---
 
-<Layout>
-	<Welcome />
+<Layout preloadPoster>
+  <Header />
+  <main id="contenido" tabindex="-1">
+    <div class="world" id="world" aria-label="Recorrido por Antojo">
+      <noscript>
+        <img class="world__fallback" src={url('/posters/s0-entrada.jpg')} alt="Fachada del bar Antojo en Utiel" />
+        <h1>Antojo, date el gusto en familia</h1>
+        {secciones.map((s) => <p>{s.body}</p>)}
+      </noscript>
+    </div>
+    <Tagline />
+    <Contact />
+  </main>
+  <Footer />
+  <WhatsAppFab />
+  <CartaDialog />
+  <SectionExtras />
 </Layout>
+
+<script>
+  import '../scripts/main';
+</script>
+
+<style is:global>
+  /* ---- Motor scroll-world adaptado a la marca ---- */
+  .world .sw-topbar,
+  .world .sw-particles,
+  .world .sw-sky__grad,
+  .world .sw-sky__glow,
+  .world .sw-copylayer::before {
+    display: none;
+  }
+
+  .world .sw-scrollbar {
+    height: 4px;
+  }
+
+  .world .sw-copy {
+    left: 64px;
+    top: 50%;
+    translate: 0 -50%;
+    width: min(42vw, 480px);
+    padding: 32px;
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--burdeos) 94%, transparent);
+    border: 1px solid color-mix(in srgb, var(--crema) 14%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-sizing: border-box;
+  }
+
+  .world .sw-copy__num {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--crema-soft);
+  }
+
+  .world .sw-copy__eyebrow {
+    margin-top: 16px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--gualda);
+  }
+
+  .world .sw-copy__title {
+    margin-top: 8px;
+    color: var(--celeste);
+    font-size: 3rem;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-shadow: none;
+    text-wrap: balance;
+  }
+
+  .world .sw-copy__body {
+    margin: 16px 0 0;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    color: var(--crema-soft);
+    text-shadow: none;
+    text-wrap: pretty;
+  }
+
+  .world .sw-copy__cta {
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .world .sw-route__label {
+    background: var(--burdeos-900);
+    color: var(--crema);
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .world .sw-hint {
+    color: var(--crema);
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .world.is-past .sw-route,
+  .world.is-past .sw-hint {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .world .sw-route {
+    transition: opacity 700ms var(--ease);
+  }
+
+  .world__fallback {
+    width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 1100px) and (min-width: 861px) {
+    .world .sw-copy__title {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+    }
+  }
+
+  @media (max-width: 860px) {
+    .world .sw-copy {
+      left: 16px;
+      right: 16px;
+      top: auto;
+      translate: none;
+      bottom: calc(88px + env(safe-area-inset-bottom));
+      width: auto;
+      max-height: calc(100dvh - 200px);
+      overflow-y: auto;
+      padding: 24px;
+    }
+    .world .sw-copy__title {
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+    .world .sw-copy__body {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+    .world .sw-route {
+      display: none;
+    }
+    .world .sw-hint {
+      bottom: auto;
+      top: calc(96px + env(safe-area-inset-top));
+    }
+  }
+
+  /* Móvil vertical: no hay versión 9:16, así que el vídeo ocupa la parte superior
+     (recorte mucho menor que a pantalla completa) y el texto va debajo. */
+  @media (max-width: 860px) and (orientation: portrait) {
+    .world .sw-stage {
+      bottom: auto;
+      height: 60dvh;
+    }
+    .world .sw-copy {
+      bottom: calc(80px + env(safe-area-inset-bottom));
+      max-height: calc(48dvh - 16px);
+      padding: 16px;
+      border-radius: 16px;
+    }
+    .world .sw-copy__num {
+      display: none;
+    }
+    .world .sw-copy__eyebrow {
+      margin-top: 0;
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+    .world .sw-copy__title {
+      font-size: 1.5rem;
+      line-height: 2rem;
+    }
+    .world .sw-copy__body {
+      margin-top: 8px;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
+    .world .sw-copy__cta,
+    .world .extra-actions,
+    .world .chips {
+      margin-top: 16px;
+    }
+    .world .chip {
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+  }
+</style>

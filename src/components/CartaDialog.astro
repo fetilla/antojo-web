@@ -1,0 +1,207 @@
+---
+import { url } from '../lib/url';
+import Icon from './Icon.astro';
+import { carta, contacto } from '../data/content';
+---
+
+<dialog class="carta" id="carta-dialog" aria-labelledby="carta-title" data-carta>
+  <div class="carta__panel">
+    <header class="carta__head">
+      <h2 id="carta-title">Nuestra carta</h2>
+      <button class="carta__close" type="button" data-carta-close aria-label="Cerrar la carta">
+        <Icon name="close" />
+      </button>
+    </header>
+
+    <div class="carta__viewport" data-carta-viewport>
+      <button class="carta__zoom" type="button" aria-pressed="false" data-carta-zoom>
+        <img
+          data-src={url(carta.src)}
+          alt="Carta de Antojo con platos de street food del mundo"
+          loading="lazy"
+          decoding="async"
+          data-carta-img
+        />
+        <span class="carta__zoomhint"><Icon name="zoom" /> Toca para ampliar</span>
+      </button>
+      <div class="carta__empty" data-carta-empty hidden>
+        <p class="carta__empty-title">La carta se está actualizando</p>
+        <p>Mientras tanto, mira nuestros platos y novedades en Instagram.</p>
+      </div>
+    </div>
+
+    <p class="carta__note">
+      <Icon name="instagram" />
+      <span>
+        {carta.aviso}{' '}
+        <a href={contacto.instagramHref} target="_blank" rel="noopener">{contacto.instagram}</a>{' '}
+        {carta.avisoFinal}
+      </span>
+    </p>
+  </div>
+</dialog>
+
+<style>
+  .carta {
+    width: min(100vw - 32px, 720px);
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 24px;
+    background: var(--burdeos-800);
+    color: var(--crema);
+    opacity: 0;
+    transform: translateY(32px) scale(0.98);
+    transition:
+      opacity 700ms var(--ease),
+      transform 700ms var(--ease),
+      overlay 700ms var(--ease) allow-discrete,
+      display 700ms var(--ease) allow-discrete;
+  }
+
+  .carta[open] {
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    .carta[open] {
+      opacity: 0;
+      transform: translateY(32px) scale(0.98);
+    }
+  }
+
+  .carta::backdrop {
+    background: color-mix(in srgb, #000 70%, transparent);
+    backdrop-filter: blur(8px);
+  }
+
+  .carta__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: calc(100dvh - 32px);
+    padding: 24px;
+    box-sizing: border-box;
+  }
+
+  .carta__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .carta__head h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 700;
+  }
+
+  .carta__close {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--crema) 12%, transparent);
+    color: var(--crema);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: background-color 700ms var(--ease);
+  }
+
+  .carta__close:hover {
+    background: color-mix(in srgb, var(--crema) 22%, transparent);
+  }
+
+  .carta__viewport {
+    min-height: 0;
+    overflow: auto;
+    border-radius: 8px;
+    background: var(--burdeos-900);
+    overscroll-behavior: contain;
+  }
+
+  .carta__zoom {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+
+  .carta__zoom[hidden],
+  .carta__empty[hidden] {
+    display: none;
+  }
+
+  .carta__zoom[aria-pressed='true'] {
+    width: 200%;
+    cursor: zoom-out;
+  }
+
+  .carta__zoom img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .carta__zoomhint {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--tinta) 80%, transparent);
+    color: var(--crema);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+  }
+
+  .carta__zoom[aria-pressed='true'] .carta__zoomhint {
+    display: none;
+  }
+
+  .carta__empty {
+    padding: 48px 24px;
+    text-align: center;
+  }
+
+  .carta__empty p {
+    margin: 0;
+    color: var(--crema-soft);
+  }
+
+  .carta__empty-title {
+    margin-bottom: 8px !important;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: var(--crema) !important;
+  }
+
+  .carta__note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--crema-soft);
+  }
+
+  .carta__note a {
+    color: var(--gualda);
+    font-weight: 600;
+  }
+</style>

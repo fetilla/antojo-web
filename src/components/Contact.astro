@@ -1,0 +1,169 @@
+---
+import Icon from './Icon.astro';
+import { contacto } from '../data/content';
+---
+
+<section class="contact" id="contacto" aria-labelledby="contacto-title">
+  <div class="contact__inner">
+    <div class="contact__intro reveal">
+      <p class="contact__eyebrow">Contacto</p>
+      <h2 id="contacto-title">Ven a darte el gusto</h2>
+      <p class="contact__lead">
+        Reserva tu mesa, pregunta por la carta o cuéntanos qué quieres celebrar. Te contestamos por
+        WhatsApp.
+      </p>
+      <div class="contact__actions">
+        <a class="btn btn--primary" href={contacto.whatsappHref} target="_blank" rel="noopener">
+          <Icon name="whatsapp" />
+          Escríbenos por WhatsApp
+        </a>
+        <a class="btn btn--ghost" href={contacto.telefonoHref}>
+          <Icon name="phone" />
+          Llamar al {contacto.telefono}
+        </a>
+      </div>
+    </div>
+
+    <ul class="contact__cards" role="list">
+      <li class="card reveal">
+        <Icon name="mapPin" class="card__icon" />
+        <div>
+          <h3>Dónde estamos</h3>
+          <p>{contacto.direccion}<br />{contacto.localidad}</p>
+          <a class="card__link" href={contacto.mapsHref} target="_blank" rel="noopener">
+            Cómo llegar <Icon name="arrowUpRight" />
+          </a>
+        </div>
+      </li>
+      <li class="card reveal">
+        <Icon name="clock" class="card__icon" />
+        <div>
+          <h3>Horario</h3>
+          <p>Lo mantenemos al día en nuestra ficha de Google.</p>
+          <a class="card__link" href={contacto.mapsHref} target="_blank" rel="noopener">
+            Ver horario en Google <Icon name="arrowUpRight" />
+          </a>
+        </div>
+      </li>
+      <li class="card reveal">
+        <Icon name="instagram" class="card__icon" />
+        <div>
+          <h3>Instagram</h3>
+          <p>Platos nuevos, eventos y la carta actualizada.</p>
+          <a class="card__link" href={contacto.instagramHref} target="_blank" rel="noopener">
+            {contacto.instagram} <Icon name="arrowUpRight" />
+          </a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .contact {
+    position: relative;
+    z-index: 30;
+    background: var(--burdeos-900);
+    padding: 96px 16px;
+    scroll-margin-top: 0;
+  }
+
+  .contact__inner {
+    display: grid;
+    gap: 48px;
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+
+  .contact__eyebrow {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gualda);
+  }
+
+  .contact h2 {
+    max-width: 680px;
+    margin: 12px 0 0;
+    font-size: 3rem;
+    line-height: 1;
+    font-weight: 700;
+  }
+
+  .contact__lead {
+    max-width: 680px;
+    margin: 16px 0 0;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    color: var(--crema-soft);
+  }
+
+  .contact__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+
+  .contact__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .card {
+    display: flex;
+    gap: 16px;
+    padding: 24px;
+    border-radius: 24px;
+    background: var(--burdeos-800);
+    border: 1px solid color-mix(in srgb, var(--crema) 10%, transparent);
+  }
+
+  .card :global(.card__icon) {
+    font-size: 1.5rem;
+    color: var(--celeste);
+  }
+
+  .card h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+  }
+
+  .card p {
+    margin: 4px 0 0;
+    color: var(--crema-soft);
+  }
+
+  .card__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 12px;
+    font-weight: 600;
+    color: var(--gualda);
+    text-decoration: none;
+    transition: gap 700ms var(--ease);
+  }
+
+  .card__link:hover {
+    gap: 8px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  @media (max-width: 480px) {
+    .contact h2 {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+    }
+  }
+</style>

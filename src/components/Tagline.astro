@@ -1,0 +1,82 @@
+---
+import { tagline } from '../data/content';
+
+// Cada palabra se ilumina por separado al cruzar la línea de activación (main.ts).
+const lineas = tagline.map((l) => l.split(' '));
+---
+
+<section class="tagline" aria-label="Lo que es Antojo">
+  <p class="tagline__text" data-tagline>
+    {
+      lineas.map((palabras, li) => (
+        <span class="tagline__line">
+          {palabras.map((p, pi) => (
+            <>
+              <span class="tagline__word" data-word>
+                {p}
+              </span>
+              {pi < palabras.length - 1 ? ' ' : ''}
+            </>
+          ))}
+          {li < lineas.length - 1 ? ' ' : ''}
+        </span>
+      ))
+    }
+  </p>
+</section>
+
+<style>
+  .tagline {
+    position: relative;
+    z-index: 30;
+    background: var(--burdeos);
+    padding: 96px 16px;
+  }
+
+  .tagline__text {
+    max-width: 680px;
+    margin: 0 auto;
+    font-size: 3rem;
+    line-height: 1;
+    font-weight: 700;
+  }
+
+  .tagline__line {
+    display: block;
+    margin-bottom: 12px;
+    text-wrap: balance;
+  }
+
+  .tagline__line:last-child {
+    margin-bottom: 0;
+  }
+
+  .tagline__word {
+    color: color-mix(in srgb, var(--crema) 30%, transparent);
+    transition: color 900ms var(--ease);
+  }
+
+  .tagline__word.is-lit {
+    color: var(--crema);
+  }
+
+  .tagline__line:first-child .tagline__word.is-lit {
+    color: var(--gualda);
+  }
+
+  @media (min-width: 861px) {
+    .tagline {
+      padding: 96px 32px;
+    }
+    .tagline__text {
+      font-size: 3rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .tagline__text {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+    }
+  }
+</style>

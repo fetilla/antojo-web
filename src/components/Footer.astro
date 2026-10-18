@@ -1,0 +1,74 @@
+---
+import { url } from '../lib/url';
+import Logo from './Logo.astro';
+import { contacto } from '../data/content';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__brand">
+      <Logo />
+      <p>Date el gusto. {contacto.direccion}, {contacto.localidad}</p>
+    </div>
+    <nav class="footer__nav" aria-label="Enlaces del pie">
+      <a href={contacto.instagramHref} target="_blank" rel="noopener">Instagram</a>
+      <a href={contacto.mapsHref} target="_blank" rel="noopener">Google Maps</a>
+      <a href={url('/privacidad')}>Privacidad</a>
+    </nav>
+    <p class="footer__copy">© {year} Antojo</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    z-index: 30;
+    background: var(--tinta);
+    padding: 48px 16px calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+
+  .footer__brand p {
+    margin: 8px 0 0;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--crema-soft);
+  }
+
+  .footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .footer__nav a {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--crema);
+  }
+
+  .footer__nav a:hover {
+    color: var(--gualda);
+  }
+
+  .footer__copy {
+    width: 100%;
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--crema-soft);
+  }
+</style>

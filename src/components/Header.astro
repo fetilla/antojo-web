@@ -1,0 +1,243 @@
+---
+import Logo from './Logo.astro';
+import { secciones } from '../data/content';
+
+// El menú enlaza a las secciones del recorrido (todas menos el inicio).
+const links = secciones.slice(1).map((s) => ({ id: s.id, label: s.label }));
+---
+
+<header class="island" data-island>
+  <nav class="island__bar" aria-label="Principal">
+    <a class="island__brand" href="#inicio" data-section-link="inicio" aria-label="Antojo, volver al inicio">
+      <Logo />
+    </a>
+    <ul class="island__links" role="list">
+      {
+        links.map((l) => (
+          <li>
+            <a class="island__link" href={`#${l.id}`} data-section-link={l.id}>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <a class="btn btn--primary island__cta" href="#contacto" data-section-link="contacto">Contáctanos</a>
+    <button
+      class="island__burger"
+      type="button"
+      aria-expanded="false"
+      aria-controls="menu-movil"
+      data-burger
+    >
+      <span class="visually-hidden">Abrir menú</span>
+      <i></i><i></i><i></i>
+    </button>
+  </nav>
+
+  <div class="sheet" id="menu-movil" data-sheet hidden>
+    <ul class="sheet__links" role="list">
+      {
+        links.map((l, i) => (
+          <li style={`--i:${i}`}>
+            <a href={`#${l.id}`} data-section-link={l.id}>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+      <li style={`--i:${links.length}`}>
+        <a class="btn btn--primary" href="#contacto" data-section-link="contacto">Contáctanos</a>
+      </li>
+    </ul>
+  </div>
+</header>
+
+<style>
+  .island {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 90;
+    pointer-events: none;
+    padding: calc(24px + env(safe-area-inset-top)) 16px 0;
+  }
+
+  .island__bar {
+    pointer-events: auto;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    width: max-content;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 8px 8px 8px 12px;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--burdeos) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--crema) 16%, transparent);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    box-sizing: border-box;
+  }
+
+  .island__brand {
+    text-decoration: none;
+    display: inline-flex;
+  }
+
+  .island__links {
+    display: flex;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .island__link {
+    display: inline-flex;
+    padding: 8px 12px;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--crema);
+    transition:
+      color 700ms var(--ease),
+      background-color 700ms var(--ease);
+  }
+
+  .island__link:hover {
+    color: var(--crema);
+    background: color-mix(in srgb, var(--crema) 10%, transparent);
+  }
+
+  .island__link[aria-current='true'] {
+    color: var(--tinta);
+    background: var(--celeste);
+  }
+
+  .island__cta {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  .island__burger {
+    display: none;
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 9999px;
+    background: var(--crema);
+    cursor: pointer;
+  }
+
+  .island__burger i {
+    position: absolute;
+    left: 12px;
+    width: 16px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--tinta);
+    transition:
+      transform 700ms var(--ease),
+      opacity 700ms var(--ease);
+  }
+
+  .island__burger i:nth-child(2) {
+    top: 13px;
+  }
+  .island__burger i:nth-child(3) {
+    top: 19px;
+  }
+  .island__burger i:nth-child(4) {
+    top: 25px;
+  }
+
+  .island__burger[aria-expanded='true'] i:nth-child(2) {
+    transform: translateY(6px) rotate(45deg);
+  }
+  .island__burger[aria-expanded='true'] i:nth-child(3) {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  .island__burger[aria-expanded='true'] i:nth-child(4) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .sheet {
+    pointer-events: auto;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--burdeos) 88%, transparent);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    opacity: 0;
+    transition: opacity 700ms var(--ease);
+  }
+
+  .sheet[hidden] {
+    display: none;
+  }
+
+  .sheet.is-open {
+    opacity: 1;
+  }
+
+  .sheet__links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sheet__links li {
+    opacity: 0;
+    transform: translateY(48px);
+    transition:
+      opacity 700ms var(--ease),
+      transform 700ms var(--ease);
+    transition-delay: calc(100ms + var(--i) * 50ms);
+  }
+
+  .sheet.is-open .sheet__links li {
+    opacity: 1;
+    transform: none;
+  }
+
+  .sheet__links a:not(.btn) {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--crema);
+  }
+
+  .sheet__links a[aria-current='true']:not(.btn) {
+    color: var(--celeste);
+  }
+
+  @media (max-width: 860px) {
+    .island__links,
+    .island__cta {
+      display: none;
+    }
+    .island__burger {
+      display: inline-block;
+    }
+    .island__bar {
+      gap: 32px;
+    }
+  }
+</style>

@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# fuentes pesadas de vídeo e imagen (no se publican)
+.media/

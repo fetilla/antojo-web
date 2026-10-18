@@ -12,6 +12,13 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@phosphor-icons/core": "^2.1.1",
     "astro": "^7.4.0"
-  }
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.6.5",
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "pnpm@11.11.0"
 }

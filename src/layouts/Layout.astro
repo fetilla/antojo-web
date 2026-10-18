@@ -1,23 +1,258 @@
+---
+import { url } from '../lib/url';
+import { contacto, seo } from '../data/content';
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+  preloadPoster?: boolean;
+}
+
+const {
+  title = seo.title,
+  description = seo.description,
+  noindex = false,
+  preloadPoster = false,
+} = Astro.props;
+
+const ogImage = Astro.site ? new URL(url('/og-antojo.jpg'), Astro.site).href : url('/og-antojo.jpg');
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Restaurant',
+  name: 'Antojo',
+  url: Astro.site?.href,
+  slogan: 'Date el gusto',
+  servesCuisine: ['Street food', 'Comida internacional'],
+  telephone: '+34698960622',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'C/ S.S. León XIII, 3, bajo',
+    postalCode: '46300',
+    addressLocality: 'Utiel',
+    addressRegion: 'Valencia',
+    addressCountry: 'ES',
+  },
+  hasMap: contacto.mapsHref,
+  sameAs: [contacto.instagramHref],
+};
+---
+
 <!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#2A0A12" />
+    <title>{title}</title>
+    {Astro.site && <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).href} />}
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content="Antojo" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+    />
+    {
+      preloadPoster && (
+        <>
+          <link rel="preload" as="image" href={url('/posters/s0-entrada.jpg')} media="(min-width: 861px)" />
+          <link rel="preload" as="image" href={url('/posters/s0-entrada-m.jpg')} media="(max-width: 860px)" />
+        </>
+      )
+    }
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <slot />
+  </body>
 </html>
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
+<style is:global>
+  :root {
+    --burdeos: #6b1a2c;
+    --burdeos-900: #2a0a12;
+    --burdeos-800: #3b0d18;
+    --gualda: #f2b705;
+    --gualda-hover: #ffc61a;
+    --celeste: #7cc6e8;
+    --crema: #f6efe3;
+    --whatsapp: #25d366;
+    --whatsapp-hover: #1ebe5b;
+    --crema-soft: #d9c9b8;
+    --tinta: #1a0f12;
+    --ease: cubic-bezier(0.32, 0.72, 0, 1);
+    --font: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+    color-scheme: dark;
+  }
+
+  /* Tokens del motor scroll-world: van en .sw-root porque el motor los declara
+     ahí mismo (dentro de @layer sw) y una declaración propia gana a la herencia. */
+  :root,
+  .sw-root {
+    --sw-bg: var(--burdeos-900);
+    --sw-ink: var(--crema);
+    --sw-ink-soft: var(--crema-soft);
+    --sw-accent: var(--gualda);
+    --sw-font-display: var(--font);
+    --sw-font-body: var(--font);
+  }
+
+  html {
+    background: var(--burdeos-900);
+  }
+
+  body {
+    margin: 0;
+    background: var(--burdeos-900);
+    color: var(--crema);
+    font-family: var(--font);
+    font-size: 1rem;
+    line-height: 1.5rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--gualda);
+    outline-offset: 4px;
+  }
+
+  .skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 200;
+    padding: 8px 12px;
+    border-radius: 9999px;
+    background: var(--gualda);
+    color: var(--tinta);
+    font-weight: 600;
+    text-decoration: none;
+    transform: translateY(-200%);
+    transition: transform 700ms var(--ease);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* Botones de marca (los usa también el motor: .sw-btn) */
+  .btn,
+  .sw-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 9999px;
+    font-family: var(--font);
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition:
+      transform 700ms var(--ease),
+      background-color 700ms var(--ease),
+      border-color 700ms var(--ease),
+      color 700ms var(--ease);
+  }
+
+  .btn--primary,
+  .sw-btn--primary {
+    background: var(--gualda);
+    color: var(--tinta);
+  }
+
+  .btn--primary:hover,
+  .sw-btn--primary:hover {
+    background: var(--gualda-hover);
+    transform: translateY(-2px);
+  }
+
+  .btn--ghost,
+  .sw-btn--ghost {
+    background: transparent;
+    color: var(--crema);
+    border-color: color-mix(in srgb, var(--crema) 45%, transparent);
+  }
+
+  .btn--ghost:hover,
+  .sw-btn--ghost:hover {
+    border-color: var(--crema);
+    transform: translateY(-2px);
+  }
+
+  .btn:active,
+  .sw-btn:active {
+    transform: scale(0.98);
+  }
+
+  /* Revelado al entrar en pantalla (IntersectionObserver en main.ts) */
+  .reveal {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(64px);
+    transition:
+      opacity 900ms var(--ease),
+      transform 900ms var(--ease),
+      filter 900ms var(--ease);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0ms !important;
+      animation: none !important;
+    }
+    .reveal {
+      opacity: 1;
+      filter: none;
+      transform: none;
+    }
+  }
 </style>
