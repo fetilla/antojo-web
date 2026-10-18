@@ -45,23 +45,6 @@ if (world) {
       }
     },
   });
-
-  // "Leer más" en las tarjetas compactas de móvil (solo si el texto no cabe)
-  world.querySelectorAll<HTMLElement>('[data-clamp]').forEach((body) => {
-    const more = body.parentElement?.querySelector<HTMLButtonElement>('[data-more]');
-    const p = body.querySelector('p');
-    if (!more || !p) return;
-    const update = () => {
-      if (body.classList.contains('is-open')) return;
-      more.hidden = p.scrollHeight <= p.clientHeight + 1;
-    };
-    more.addEventListener('click', () => {
-      const open = body.classList.toggle('is-open');
-      more.textContent = open ? 'Leer menos' : 'Leer más';
-    });
-    document.fonts.ready.then(update);
-    window.addEventListener('resize', update);
-  });
 }
 
 // ---- Navegación ----
