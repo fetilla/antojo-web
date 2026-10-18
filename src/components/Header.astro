@@ -120,6 +120,18 @@ const links = secciones.slice(1).map((s) => ({ id: s.id, label: s.label }));
     background: var(--celeste);
   }
 
+  /* El salto espera a que se descarguen los vídeos del trayecto */
+  :global(.sw-is-loading) ~ * .island__link[aria-current='true'],
+  :global(html:has(.sw-is-loading)) .island__link[aria-current='true'] {
+    animation: island-wait 900ms var(--ease) infinite alternate;
+  }
+
+  @keyframes island-wait {
+    to {
+      opacity: 0.45;
+    }
+  }
+
   .island__cta {
     font-size: 0.875rem;
     line-height: 1.25rem;

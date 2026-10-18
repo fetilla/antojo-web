@@ -9,7 +9,7 @@ CRF_D=${CRF_D:-27}
 CRF_M=${CRF_M:-30}
 mkdir -p "$OUT" "$POS"
 
-cut() { # nombre primer_fotograma ultimo_fotograma
+cut() { # nombre primer_fotograma ultimo_fotograma fotograma_del_poster
   local end=$(($3 + 1))
   ffmpeg -v error -y -i "$SRC" -an \
     -vf "trim=start_frame=$2:end_frame=$end,setpts=PTS-STARTPTS,unsharp=5:5:0.6:5:5:0.0" \
@@ -19,17 +19,18 @@ cut() { # nombre primer_fotograma ultimo_fotograma
     -vf "trim=start_frame=$2:end_frame=$end,setpts=PTS-STARTPTS,scale=854:-2" \
     -c:v libx264 -preset slow -crf "$CRF_M" -pix_fmt yuv420p \
     -g 1 -keyint_min 1 -sc_threshold 0 -movflags +faststart "$OUT/$1-m.mp4"
-  ffmpeg -v error -y -i "$SRC" -vf "select=eq(n\,$2)" -frames:v 1 -q:v 6 "$POS/$1.jpg"
-  ffmpeg -v error -y -i "$SRC" -vf "select=eq(n\,$2),scale=1280:-2" -frames:v 1 -q:v 7 "$POS/$1-m.jpg"
+  # Póster = fotograma donde se para la sección (el último del tramo; el primero en el inicio)
+  ffmpeg -v error -y -i "$SRC" -vf "select=eq(n\,$4)" -frames:v 1 -q:v 6 "$POS/$1.jpg"
+  ffmpeg -v error -y -i "$SRC" -vf "select=eq(n\,$4),scale=1280:-2" -frames:v 1 -q:v 7 "$POS/$1-m.jpg"
 }
 
 # Cada tramo TERMINA en el elemento de su sección: la cámara viaja hasta él y se
 # para ahí mientras se ve la tarjeta (ver `travel` en src/data/content.ts).
-cut s0-entrada   0   24    # fachada (leve acercamiento)
-cut s1-nosotros  24  120   # → mapamundi
-cut s2-carta     120 360   # → vista del fondo → pared de fotos
-cut s3-cocina    360 480   # → mural de los ojos
-cut s4-ninos     480 720   # → esquina → cruza el arco → rincón infantil
+cut s0-entrada   0   24  0     # fachada (leve acercamiento)
+cut s1-nosotros  24  120 120   # → mapamundi
+cut s2-carta     120 360 360   # → vista del fondo → pared de fotos
+cut s3-cocina    360 480 480   # → mural de los ojos
+cut s4-ninos     480 720 720   # → esquina → cruza el arco → rincón infantil
 
 ls -lh "$OUT" "$POS"
 

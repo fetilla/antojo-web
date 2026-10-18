@@ -212,8 +212,14 @@ function mountScrollWorld(container, config) {
   // section's last frame is the next one's first, so skipping a hold changes nothing
   // on screen). Animating scroll instead made the camera stall at every hold.
   const JUMP_SPEED = 8, JUMP_MIN_MS = 900, JUMP_MAX_MS = 4500;   // video seconds per second
+  const JUMP_WAIT_MS = 2500;   // longest wait for the route's clips; past it, fade instead of flying
   const easeInOut = t => -(Math.cos(Math.PI * t) - 1) / 2;
-  function endJump() { if (jump) { cancelAnimationFrame(jump.raf); jump = null; read(); } }
+  function endJump() {
+    if (!jump) return;
+    cancelAnimationFrame(jump.raf); jump = null;
+    container.classList.remove('sw-is-loading'); stage.style.opacity = '';
+    read();
+  }
   ['wheel', 'touchstart', 'keydown'].forEach(ev =>
     window.addEventListener(ev, endJump, { passive: true }));
 
@@ -256,32 +262,58 @@ function mountScrollWorld(container, config) {
     ys = from;
     if (jump) cancelAnimationFrame(jump.raf);
     if (reduce || Math.abs(top - from) < 2) { jump = null; window.scrollTo(0, top); ys = top; read(); return; }
-    // Warm every clip along the route so the flight shows video, not posters.
+    // Every clip along the route must be ready, otherwise the flight shows the
+    // section posters and stutters section by section. Wait for them (bounded).
     const lo = Math.min(from, top), hi = Math.max(from, top);
-    SEGMENTS.forEach(s => { if (s.end >= lo && s.start <= hi) loadClip(s); });
-    const v0 = yToVideo(from), v1 = yToVideo(top);
-    const dur = Math.min(JUMP_MAX_MS, Math.max(JUMP_MIN_MS, Math.abs(v1 - v0) / JUMP_SPEED * 1000));
-    const t0 = performance.now();
-    jump = { i, from: activeIndex, top, raf: 0 };
-    const step = now => {
-      if (!jump) return;
-      const t = Math.min(1, (now - t0) / dur);
-      if (t < 1) {
-        window.scrollTo(0, videoToY(v0 + (v1 - v0) * easeInOut(t)));
-        jump.raf = requestAnimationFrame(step);
-      } else { window.scrollTo(0, top); jump = null; read(); }
-    };
-    jump.raf = requestAnimationFrame(step);
+    const route = SEGMENTS.filter(s => s.end >= lo && s.start <= hi);
+    const me = jump = { i, from: activeIndex, top, raf: 0 };
     read();
+    let allReady = false;
+    const ready = Promise.all(route.map(loadClip)).then(() => { allReady = true; });
+    container.classList.add('sw-is-loading');
+    Promise.race([ready, new Promise(r => setTimeout(r, JUMP_WAIT_MS))]).then(() => {
+      container.classList.remove('sw-is-loading');
+      if (jump !== me) return;   // cancelled or superseded while waiting
+      if (!allReady) {
+        // The route isn't downloaded yet: a flight would stutter on posters, so cut
+        // straight to the destination with a short fade instead.
+        stage.style.transition = 'opacity 220ms ease';
+        stage.style.opacity = '0';
+        setTimeout(() => {
+          if (jump !== me) { stage.style.opacity = ''; return; }
+          window.scrollTo(0, top); ys = top; jump = null; read();
+          stage.style.opacity = '';
+          setTimeout(() => { stage.style.transition = ''; }, 260);
+        }, 230);
+        return;
+      }
+      const start = window.scrollY || window.pageYOffset;
+      const v0 = yToVideo(start), v1 = yToVideo(top);
+      const dur = Math.min(JUMP_MAX_MS, Math.max(JUMP_MIN_MS, Math.abs(v1 - v0) / JUMP_SPEED * 1000));
+      const t0 = performance.now();
+      const step = now => {
+        if (jump !== me) return;
+        const t = Math.min(1, (now - t0) / dur);
+        if (t < 1) {
+          window.scrollTo(0, videoToY(v0 + (v1 - v0) * easeInOut(t)));
+          me.raf = requestAnimationFrame(step);
+        } else { window.scrollTo(0, top); jump = null; read(); }
+      };
+      me.raf = requestAnimationFrame(step);
+    });
   }
 
+  // Antojo: returns a promise that settles once the clip can show frames (or failed),
+  // so jumps and the background preloader can wait for it.
   function loadClip(s) {
     // Under prefers-reduced-motion we never load the clips at all — the stills stay up
     // and simply cross-dissolve as you scroll. No scrubbed video motion, no decode cost.
-    if (reduce || s.loading || !s.clip) return;
+    if (reduce || !s.clip) return Promise.resolve();
+    if (s.loadP) return s.loadP;
     s.loading = true;
     // Serve the lighter mobile encode on phones when one was provided.
     const url = (isMobile() && s.clipM) ? s.clipM : s.clip;
+    let done; s.loadP = new Promise(r => { done = r; });
     fetch(url).then(r => r.ok ? r.blob() : Promise.reject(new Error('404')))
       .then(blob => {
         const v = document.createElement('video');
@@ -294,10 +326,33 @@ function mountScrollWorld(container, config) {
         // painted — on iOS a seeked-but-never-played muted video stays blank, so
         // hiding the still on metadata alone would flash an empty scene.
         v.addEventListener('seeked', () => { s.el.classList.add('has-clip'); }, { once: true });
-        v.addEventListener('loadeddata', () => { try { v.pause(); } catch (e) {} if (userReady) primeVideo(v); });
+        v.addEventListener('loadeddata', () => {
+          try { v.pause(); } catch (e) {}
+          if (userReady) primeVideo(v);
+          // Antojo: on desktop (and on phones after the first touch) paint the clip's
+          // current frame right away, so the poster never stands in for it mid-flight.
+          if (!coarse || userReady) { try { v.currentTime = Math.max(0.001, s.cur * (v.duration || 1)); } catch (e) {} }
+          done();
+        });
+        v.addEventListener('error', () => done());
         s.el.appendChild(v); s.video = v; s.hasClip = true;
-      }).catch(() => { s.loading = false; });
+      }).catch(() => { s.loading = false; s.loadP = null; done(); });
+    return s.loadP;
   }
+
+  // Antojo: after the page has loaded, fetch every clip in route order in the
+  // background (one at a time, so the first ones arrive first). Skipped on Save-Data.
+  function preloadAll() {
+    const c = navigator.connection;
+    if (reduce || (c && c.saveData)) return;
+    SEGMENTS.reduce((p, s) => p.then(() => loadClip(s)), Promise.resolve());
+  }
+  const startPreload = () => {
+    const idle = window.requestIdleCallback || (cb => setTimeout(cb, 600));
+    idle(preloadAll, { timeout: 2000 });
+  };
+  if (document.readyState === 'complete') startPreload();
+  else window.addEventListener('load', startPreload, { once: true });
 
   function read() {
     const y = ys;
