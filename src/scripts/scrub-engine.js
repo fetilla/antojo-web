@@ -207,13 +207,45 @@ function mountScrollWorld(container, config) {
   // While flying, only the origin and destination copies may show. The jump ends
   // on arrival or on any user scroll input.
   let jump = null;
-  // Sine easing keeps peak speed ~1.6x the average (a cubic peaks at 3x and the
-  // clips start skipping frames); ~1.2s per viewport of travel reads as a brisk walk.
-  const JUMP_MS_PER_VH = 1200, JUMP_MIN_MS = 1000, JUMP_MAX_MS = 4500;
+  // The flight is animated in *video time*, not scroll distance: the video plays at
+  // a steady JUMP_SPEED and the holds of the sections in between are skipped (a
+  // section's last frame is the next one's first, so skipping a hold changes nothing
+  // on screen). Animating scroll instead made the camera stall at every hold.
+  const JUMP_SPEED = 8, JUMP_MIN_MS = 900, JUMP_MAX_MS = 4500;   // video seconds per second
   const easeInOut = t => -(Math.cos(Math.PI * t) - 1) / 2;
   function endJump() { if (jump) { cancelAnimationFrame(jump.raf); jump = null; read(); } }
   ['wheel', 'touchstart', 'keydown'].forEach(ev =>
     window.addEventListener(ev, endJump, { passive: true }));
+
+  const clipDur = k => { const sg = SECTIONS[k]._seg; return (sg.video && sg.video.duration) || SECTIONS[k].duration || 1; };
+  // scroll position → seconds along the whole walkthrough
+  function yToVideo(y) {
+    let acc = 0;
+    for (let k = 0; k < N; k++) {
+      const sg = SECTIONS[k]._seg, d = clipDur(k);
+      if (y < sg.end || k === N - 1) {
+        const local = clamp((y - sg.start) / (sg.end - sg.start));
+        const v = sg.travel ? (local < sg.travel ? easeOutQuad(local / sg.travel) : 1) : local;
+        return acc + v * d;
+      }
+      acc += d;
+    }
+    return acc;
+  }
+  // seconds along the walkthrough → scroll position (inside the travel part, never a hold)
+  function videoToY(t) {
+    let acc = 0;
+    for (let k = 0; k < N; k++) {
+      const sg = SECTIONS[k]._seg, d = clipDur(k);
+      if (t <= acc + d || k === N - 1) {
+        const v = clamp((t - acc) / d);
+        const local = sg.travel ? sg.travel * (1 - Math.sqrt(1 - v)) : v;   // inverse of easeOutQuad
+        return sg.start + (sg.end - sg.start) * local;
+      }
+      acc += d;
+    }
+    return 0;
+  }
 
   function jumpTo(i, opts = {}) {
     const seg = SECTIONS[i]._seg;
@@ -227,16 +259,17 @@ function mountScrollWorld(container, config) {
     // Warm every clip along the route so the flight shows video, not posters.
     const lo = Math.min(from, top), hi = Math.max(from, top);
     SEGMENTS.forEach(s => { if (s.end >= lo && s.start <= hi) loadClip(s); });
-    const dist = Math.abs(top - from) / vh;
-    const dur = Math.min(JUMP_MAX_MS, Math.max(JUMP_MIN_MS, dist * JUMP_MS_PER_VH));
+    const v0 = yToVideo(from), v1 = yToVideo(top);
+    const dur = Math.min(JUMP_MAX_MS, Math.max(JUMP_MIN_MS, Math.abs(v1 - v0) / JUMP_SPEED * 1000));
     const t0 = performance.now();
     jump = { i, from: activeIndex, top, raf: 0 };
     const step = now => {
       if (!jump) return;
       const t = Math.min(1, (now - t0) / dur);
-      window.scrollTo(0, from + (top - from) * easeInOut(t));
-      if (t < 1) jump.raf = requestAnimationFrame(step);
-      else { jump = null; read(); }
+      if (t < 1) {
+        window.scrollTo(0, videoToY(v0 + (v1 - v0) * easeInOut(t)));
+        jump.raf = requestAnimationFrame(step);
+      } else { window.scrollTo(0, top); jump = null; read(); }
     };
     jump.raf = requestAnimationFrame(step);
     read();

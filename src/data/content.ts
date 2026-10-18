@@ -27,6 +27,7 @@ export const secciones = [
     id: 'inicio',
     label: 'Inicio',
     clip: 's0-entrada',
+    duration: 1.04, // segundos del clip (para los saltos del menú)
     accent: '#F2B705',
     eyebrow: 'Bar Antojo · Utiel',
     title: 'Date el gusto, en familia',
@@ -42,6 +43,7 @@ export const secciones = [
     id: 'nosotros',
     label: 'Nosotros',
     clip: 's1-nosotros',
+    duration: 4.04, // segundos del clip (para los saltos del menú)
     accent: '#F2B705',
     eyebrow: 'Nosotros',
     title: 'Cocina viajada, servida en casa',
@@ -54,6 +56,7 @@ export const secciones = [
     id: 'carta',
     label: 'Carta',
     clip: 's2-carta',
+    duration: 10.04, // segundos del clip (para los saltos del menú)
     accent: '#7CC6E8',
     eyebrow: 'Carta',
     title: 'Sabores con pasaporte',
@@ -66,6 +69,7 @@ export const secciones = [
     id: 'cocina',
     label: 'Cocina',
     clip: 's3-cocina',
+    duration: 5.04, // segundos del clip (para los saltos del menú)
     accent: '#F2B705',
     eyebrow: 'Cocina',
     title: 'Street world food',
@@ -78,6 +82,7 @@ export const secciones = [
     id: 'ninos',
     label: 'Zona de niños',
     clip: 's4-ninos',
+    duration: 10.04, // segundos del clip (para los saltos del menú)
     accent: '#7CC6E8',
     eyebrow: 'Zona de niños',
     title: 'Disfrutas tú, disfrutan ellos',

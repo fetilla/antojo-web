@@ -26,6 +26,7 @@ const api = world
         scroll: s.scroll,
         linger: s.linger,
         travel: 'travel' in s ? s.travel : 0,
+        duration: s.duration,
         cta: 'cta' in s ? s.cta : undefined,
         clip: url(`/video/${s.clip}.mp4`),
         clipMobile: url(`/video/${s.clip}-m.mp4`),
