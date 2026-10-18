@@ -114,7 +114,7 @@ export const cocina = [
 ] as const;
 
 export const carta = {
-  src: '/carta/carta.jpg',
+  src: '/carta/carta-web.jpg',
   aviso: 'Visita la carta en Instagram',
   avisoFinal: 'para novedades',
 };
