@@ -191,19 +191,40 @@ function mountScrollWorld(container, config) {
     read();
   }
 
-  // Antojo: while a nav jump flies past other sections, only the destination's
-  // copy is shown. The jump ends on arrival, on any user scroll input, or after a timeout.
+  // Antojo: nav jumps fly through the venue with our own eased scroll (the native
+  // smooth scroll is too fast over long distances and the clips read as stills).
+  // While flying, only the origin and destination copies may show. The jump ends
+  // on arrival or on any user scroll input.
   let jump = null;
-  function endJump() { if (jump) { clearTimeout(jump.timer); jump = null; read(); } }
+  // Sine easing keeps peak speed ~1.6x the average (a cubic peaks at 3x and the
+  // clips start skipping frames); ~450ms per viewport of travel reads as a brisk walk.
+  const JUMP_MS_PER_VH = 450, JUMP_MIN_MS = 1000, JUMP_MAX_MS = 4500;
+  const easeInOut = t => -(Math.cos(Math.PI * t) - 1) / 2;
+  function endJump() { if (jump) { cancelAnimationFrame(jump.raf); jump = null; read(); } }
   ['wheel', 'touchstart', 'keydown'].forEach(ev =>
     window.addEventListener(ev, endJump, { passive: true }));
 
-  function jumpTo(i) {
+  function jumpTo(i, opts = {}) {
     const seg = SECTIONS[i]._seg;
-    const top = Math.round(seg.start + (seg.end - seg.start) * 0.5);
-    if (jump) clearTimeout(jump.timer);
-    jump = { i, top, timer: setTimeout(endJump, 4000) };
-    window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+    const top = Math.round(opts.top != null ? opts.top : seg.start + (seg.end - seg.start) * 0.5);
+    const from = window.scrollY || window.pageYOffset;
+    if (jump) cancelAnimationFrame(jump.raf);
+    if (reduce || Math.abs(top - from) < 2) { jump = null; window.scrollTo(0, top); read(); return; }
+    // Warm every clip along the route so the flight shows video, not posters.
+    const lo = Math.min(from, top), hi = Math.max(from, top);
+    SEGMENTS.forEach(s => { if (s.end >= lo && s.start <= hi) loadClip(s); });
+    const dist = Math.abs(top - from) / vh;
+    const dur = Math.min(JUMP_MAX_MS, Math.max(JUMP_MIN_MS, dist * JUMP_MS_PER_VH));
+    const t0 = performance.now();
+    jump = { i, from: activeIndex, top, raf: 0 };
+    const step = now => {
+      if (!jump) return;
+      const t = Math.min(1, (now - t0) / dur);
+      window.scrollTo(0, from + (top - from) * easeInOut(t));
+      if (t < 1) jump.raf = requestAnimationFrame(step);
+      else { jump = null; read(); }
+    };
+    jump.raf = requestAnimationFrame(step);
     read();
   }
 
@@ -233,7 +254,6 @@ function mountScrollWorld(container, config) {
 
   function read() {
     const y = window.scrollY || window.pageYOffset;
-    if (jump && Math.abs(y - jump.top) < 4) { clearTimeout(jump.timer); jump = null; }
     const fade = CROSSFADE * vh;
     let ci = 0;
     for (let i = 0; i < NSEG; i++) if (y >= SEGMENTS[i].start) ci = i;
@@ -266,7 +286,7 @@ function mountScrollWorld(container, config) {
       if (i === 0) cop = after ? 0 : smooth((1 - pr) / COPY_FADE);           // greets on landing
       else if (i === N - 1) cop = before ? 0 : smooth(pr / COPY_FADE);       // holds CTA at the end
       else cop = (before || after) ? 0 : smooth(Math.min(pr, 1 - pr) / COPY_FADE);
-      if (jump && i !== jump.i) cop = 0;
+      if (jump && i !== jump.i && i !== jump.from) cop = 0;
       const c = copies[i];
       c.style.opacity = cop;
       c.style.transform = reduce ? 'none' : `translateY(${(0.5 - pr) * 2}vh)`;

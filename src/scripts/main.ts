@@ -79,7 +79,8 @@ function setCurrent(id: string) {
 function goTo(id: string) {
   const behavior: ScrollBehavior = reduce ? 'auto' : 'smooth';
   if (id === 'inicio') {
-    window.scrollTo({ top: 0, behavior });
+    if (api) api.jumpTo(0, { top: 0 });
+    else window.scrollTo({ top: 0, behavior });
     return;
   }
   const index = ids.indexOf(id as (typeof ids)[number]);
