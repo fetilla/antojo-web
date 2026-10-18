@@ -276,3 +276,6 @@ if (contactSection) {
     { threshold: 0.4 },
   ).observe(contactSection);
 }
+
+// Panel de diagnóstico: antojoutiel.com/?debug=1
+if (new URLSearchParams(location.search).has('debug')) import('./debug');
