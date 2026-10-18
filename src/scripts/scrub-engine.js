@@ -178,6 +178,11 @@ function mountScrollWorld(container, config) {
   // mid-scene pause. f(0)=0, f(1)=1 always, so seam frames are untouched.
   const lingerEase = (x, L) => { L = clamp(L); const c = x - 0.5; return (1 - L) * x + L * (4 * c * c * c + 0.5); };
   let vh = window.innerHeight, stageX = 0, totalW = 0, activeIndex = -1, ticking = false;
+  // Antojo: everything is driven by a smoothed scroll position (ys) that glides
+  // toward the real one, so each mouse-wheel notch becomes a short glide instead
+  // of a hard jump of video, copy and crossfades.
+  let ys = window.scrollY || window.pageYOffset, lastRead = NaN, lastT = performance.now();
+  const SMOOTH = coarse ? 0.2 : 0.12;   // share of the remaining distance per 60 Hz frame
   let laidOutW = window.innerWidth;   // width the current layout was computed at (see onResize)
 
   function layout() {
@@ -197,8 +202,8 @@ function mountScrollWorld(container, config) {
   // on arrival or on any user scroll input.
   let jump = null;
   // Sine easing keeps peak speed ~1.6x the average (a cubic peaks at 3x and the
-  // clips start skipping frames); ~450ms per viewport of travel reads as a brisk walk.
-  const JUMP_MS_PER_VH = 450, JUMP_MIN_MS = 1000, JUMP_MAX_MS = 4500;
+  // clips start skipping frames); ~1.2s per viewport of travel reads as a brisk walk.
+  const JUMP_MS_PER_VH = 1200, JUMP_MIN_MS = 1000, JUMP_MAX_MS = 4500;
   const easeInOut = t => -(Math.cos(Math.PI * t) - 1) / 2;
   function endJump() { if (jump) { cancelAnimationFrame(jump.raf); jump = null; read(); } }
   ['wheel', 'touchstart', 'keydown'].forEach(ev =>
@@ -208,8 +213,9 @@ function mountScrollWorld(container, config) {
     const seg = SECTIONS[i]._seg;
     const top = Math.round(opts.top != null ? opts.top : seg.start + (seg.end - seg.start) * 0.5);
     const from = window.scrollY || window.pageYOffset;
+    ys = from;
     if (jump) cancelAnimationFrame(jump.raf);
-    if (reduce || Math.abs(top - from) < 2) { jump = null; window.scrollTo(0, top); read(); return; }
+    if (reduce || Math.abs(top - from) < 2) { jump = null; window.scrollTo(0, top); ys = top; read(); return; }
     // Warm every clip along the route so the flight shows video, not posters.
     const lo = Math.min(from, top), hi = Math.max(from, top);
     SEGMENTS.forEach(s => { if (s.end >= lo && s.start <= hi) loadClip(s); });
@@ -253,7 +259,7 @@ function mountScrollWorld(container, config) {
   }
 
   function read() {
-    const y = window.scrollY || window.pageYOffset;
+    const y = ys;
     const fade = CROSSFADE * vh;
     let ci = 0;
     for (let i = 0; i < NSEG; i++) if (y >= SEGMENTS[i].start) ci = i;
@@ -291,6 +297,8 @@ function mountScrollWorld(container, config) {
       c.style.opacity = cop;
       c.style.transform = reduce ? 'none' : `translateY(${(0.5 - pr) * 2}vh)`;
       c.style.pointerEvents = cop > 0.5 ? 'auto' : 'none';
+      // Antojo: hidden copies must not catch clicks or keyboard focus (they all overlap).
+      c.style.visibility = cop > 0.01 ? 'visible' : 'hidden';
     }
 
     const cur = SEGMENTS[ci];
@@ -311,6 +319,15 @@ function mountScrollWorld(container, config) {
   }
 
   function raf() {
+    const now = performance.now();
+    const dt = Math.min(64, now - lastT); lastT = now;
+    const real = window.scrollY || window.pageYOffset;
+    if (reduce || jump) ys = real;   // nav jumps are already eased
+    else {
+      ys += (real - ys) * (1 - Math.pow(1 - SMOOTH, dt / 16.67));
+      if (Math.abs(real - ys) < 0.5) ys = real;
+    }
+    if (ys !== lastRead) { lastRead = ys; read(); }
     const eps = isMobile() ? 0.02 : 0.008;   // coarser seek step on phones = fewer decodes
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
@@ -320,7 +337,7 @@ function mountScrollWorld(container, config) {
       // cur keeps lerping, so we snap to the latest target the moment it's free.
       if (s.video.seeking) continue;
       if (!s.visible && Math.abs(s.cur - s.target) < 0.002) continue;
-      s.cur += (s.target - s.cur) * (reduce ? 1 : 0.18);
+      s.cur += (s.target - s.cur) * (reduce ? 1 : 0.35);   // scroll is already smoothed
       const dur = s.video.duration || 1;
       const t = clamp(s.cur, 0, 0.999) * dur;
       if (Math.abs(s.video.currentTime - t) > eps) { try { s.video.currentTime = t; } catch (e) {} }
@@ -348,7 +365,7 @@ function mountScrollWorld(container, config) {
 
   // Particles are a per-frame cost we can't afford alongside video scrubbing on a phone.
   seedParticles(particles, reduce || coarse);
-  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(read); } }, { passive: true });
+  // (scroll is sampled every frame in raf(), through the smoothed position)
   // Mobile browsers fire `resize` every time the URL bar slides in/out. Re-running
   // layout() there rebuilds the track height and yanks the scroll position, so on
   // touch we ignore height-only changes and only relayout when the width actually

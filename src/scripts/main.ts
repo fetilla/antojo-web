@@ -14,7 +14,7 @@ const api = world
       hint: 'Desliza para entrar',
       diveScroll: 1.4,
       crossfade: 0.08,
-      copyFade: 0.1,
+      copyFade: 0.18,
       onSection: markSection,
       sections: secciones.map((s) => ({
         id: s.id,

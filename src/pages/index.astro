@@ -102,6 +102,14 @@ import { secciones } from '../data/content';
     margin-top: 24px;
   }
 
+  /* Todas las tarjetas se superponen: sus botones solo reciben clics cuando su
+     tarjeta está visible (el motor pone pointer-events en la tarjeta). */
+  .world .sw-copy__cta,
+  .world .chips,
+  .world .extra-actions {
+    pointer-events: inherit;
+  }
+
   .world .sw-route__label {
     background: var(--burdeos-900);
     color: var(--crema);

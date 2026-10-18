@@ -48,10 +48,13 @@ import { contacto } from '../data/content';
       <li class="card reveal">
         <Icon name="instagram" class="card__icon" />
         <div>
-          <h3>Instagram</h3>
+          <h3>Síguenos</h3>
           <p>Platos nuevos, eventos y la carta actualizada.</p>
           <a class="card__link" href={contacto.instagramHref} target="_blank" rel="noopener">
-            {contacto.instagram} <Icon name="arrowUpRight" />
+            Instagram {contacto.instagram} <Icon name="arrowUpRight" />
+          </a>
+          <a class="card__link" href={contacto.facebookHref} target="_blank" rel="noopener">
+            Facebook {contacto.facebook} <Icon name="arrowUpRight" />
           </a>
         </div>
       </li>
@@ -144,7 +147,8 @@ import { contacto } from '../data/content';
   }
 
   .card__link {
-    display: inline-flex;
+    display: flex;
+    width: fit-content;
     align-items: center;
     gap: 4px;
     margin-top: 12px;

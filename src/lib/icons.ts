@@ -2,6 +2,7 @@
 import whatsapp from '@phosphor-icons/core/bold/whatsapp-logo-bold.svg?raw';
 import phone from '@phosphor-icons/core/bold/phone-bold.svg?raw';
 import instagram from '@phosphor-icons/core/bold/instagram-logo-bold.svg?raw';
+import facebook from '@phosphor-icons/core/bold/facebook-logo-bold.svg?raw';
 import mapPin from '@phosphor-icons/core/bold/map-pin-bold.svg?raw';
 import clock from '@phosphor-icons/core/bold/clock-bold.svg?raw';
 import close from '@phosphor-icons/core/bold/x-bold.svg?raw';
@@ -24,7 +25,7 @@ import flame from '@phosphor-icons/core/bold/flame-bold.svg?raw';
 import wine from '@phosphor-icons/core/bold/wine-bold.svg?raw';
 
 export const icons = {
-  whatsapp, phone, instagram, mapPin, clock, close, arrowUpRight, arrowRight, book, zoom,
+  whatsapp, phone, instagram, facebook, mapPin, clock, close, arrowUpRight, arrowRight, book, zoom,
   caret, paw, glutenFree, cake, confetti, campfire, fire, thermometer, pepper, burger,
   bread, flame, wine,
 } as const;
