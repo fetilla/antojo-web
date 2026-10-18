@@ -5,23 +5,29 @@ import Header from '../components/Header.astro';
 import WhatsAppFab from '../components/WhatsAppFab.astro';
 import CartaDialog from '../components/CartaDialog.astro';
 import MediaDialog from '../components/MediaDialog.astro';
-import SectionExtras from '../components/SectionExtras.astro';
+import Cards from '../components/Cards.astro';
 import Tagline from '../components/Tagline.astro';
 import Contact from '../components/Contact.astro';
 import Footer from '../components/Footer.astro';
-import { secciones } from '../data/content';
 ---
 
 <Layout preloadPoster>
   <Header />
   <main id="contenido" tabindex="-1">
-    <div class="world" id="world" aria-label="Recorrido por Antojo">
-      <noscript>
-        <img class="world__fallback" src={url('/posters/s0-entrada.jpg')} alt="Fachada del bar Antojo en Utiel" />
-        <h1>Antojo, date el gusto en familia</h1>
-        {secciones.map((s) => <p>{s.body}</p>)}
-      </noscript>
-    </div>
+    <section class="wt" id="world" aria-label="Recorrido por Antojo">
+      <div class="wt__stage" data-stage>
+        <picture>
+          <source media="(max-width: 860px)" srcset={url('/posters/s0-entrada-m.jpg')} />
+          <img class="wt__poster" src={url('/posters/s0-entrada.jpg')} alt="" fetchpriority="high" data-poster />
+        </picture>
+      </div>
+      <div class="wt__progress" aria-hidden="true"><span data-progress></span></div>
+      <p class="wt__hint" aria-hidden="true" data-hint>Desliza para entrar</p>
+      <div class="wt__cards">
+        <Cards />
+      </div>
+      <div class="wt__track" data-track></div>
+    </section>
     <Tagline />
     <Contact />
   </main>
@@ -29,197 +35,120 @@ import { secciones } from '../data/content';
   <WhatsAppFab />
   <CartaDialog />
   <MediaDialog />
-  <SectionExtras />
 </Layout>
+
+<noscript>
+  <style>
+    .wt__track { display: none; }
+    .wt__cards { position: static !important; }
+    .wt-card { position: static !important; opacity: 1 !important; visibility: visible !important; translate: none !important; width: auto !important; margin: 16px; }
+  </style>
+</noscript>
 
 <script>
   import '../scripts/main';
 </script>
 
 <style is:global>
-  /* ---- Motor scroll-world adaptado a la marca ---- */
-  .world .sw-topbar,
-  .world .sw-particles,
-  .world .sw-sky__grad,
-  .world .sw-sky__glow,
-  .world .sw-copylayer::before {
-    display: none;
+  /* ---- Recorrido (walkthrough.ts) ---- */
+  .wt {
+    position: relative;
   }
 
-  .world .sw-scrollbar {
-    height: 4px;
-  }
-
-  .world .sw-copy {
-    left: 64px;
-    top: 50%;
-    translate: 0 -50%;
-    width: min(42vw, 480px);
-    padding: 32px;
-    border-radius: 24px;
-    background: color-mix(in srgb, var(--burdeos) 94%, transparent);
-    border: 1px solid color-mix(in srgb, var(--crema) 14%, transparent);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-sizing: border-box;
-  }
-
-  .world .sw-copy__num {
-    display: none;
-  }
-
-  .world .sw-copy__eyebrow {
-    margin-top: 0;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    color: var(--gualda);
-  }
-
-  .world .sw-copy__title {
-    margin-top: 8px;
-    color: var(--celeste);
-    font-size: 3rem;
-    line-height: 1;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    text-shadow: none;
-    text-wrap: balance;
-  }
-
-  .world .sw-copy__body {
-    margin: 16px 0 0;
-    font-size: 1.125rem;
-    line-height: 1.75rem;
-    color: var(--crema-soft);
-    text-shadow: none;
-    text-wrap: pretty;
-  }
-
-  .world .sw-copy__cta {
-    gap: 12px;
-    margin-top: 24px;
-  }
-
-  /* Todas las tarjetas se superponen: sus botones solo reciben clics cuando su
-     tarjeta está visible (el motor pone pointer-events en la tarjeta). */
-  .world .sw-copy__cta,
-  .world .chips,
-  .world .extra-actions {
-    pointer-events: inherit;
-  }
-
-  .world .sw-route__label {
+  .wt__stage {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
     background: var(--burdeos-900);
-    color: var(--crema);
-    font-size: 0.75rem;
-    line-height: 1rem;
   }
 
-  .world .sw-hint {
-    color: var(--crema);
-    font-size: 0.75rem;
-    line-height: 1rem;
+  .wt__poster,
+  .wt__media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
-  .world.is-past .sw-route,
-  .world.is-past .sw-hint {
+  .wt__media {
+    z-index: 1;
+  }
+
+  .wt__poster {
+    z-index: 2;
+    transition: opacity 300ms ease;
+  }
+
+  .wt__poster.is-hidden {
     opacity: 0;
+  }
+
+  .wt__progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    height: 4px;
+    background: color-mix(in srgb, var(--gualda) 14%, transparent);
+  }
+
+  .wt__progress span {
+    display: block;
+    height: 100%;
+    background: var(--gualda);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+  }
+
+  .wt__hint {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 20;
+    margin: 0;
+    translate: -50% 0;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--crema);
+    text-shadow: 0 1px 8px rgb(0 0 0 / 0.6);
     pointer-events: none;
   }
 
-  .world .sw-route {
-    transition: opacity 700ms var(--ease);
+  .wt__cards {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
   }
 
-  .world__fallback {
-    width: 100%;
-    height: auto;
+  .wt__track {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
   }
 
-  @media (max-width: 1100px) and (min-width: 861px) {
-    .world .sw-copy__title {
-      font-size: 2.25rem;
-      line-height: 2.5rem;
-    }
+  /* fuera del recorrido se ocultan la pista y la barra */
+  .wt.is-past .wt__hint,
+  .wt.is-past .wt__progress {
+    opacity: 0;
   }
 
+  /* Móvil: el recorrido cubre toda la pantalla, también bajo la barra de direcciones */
   @media (max-width: 860px) {
-    .world .sw-copy {
-      left: 16px;
-      right: 16px;
-      top: auto;
-      translate: none;
-      bottom: calc(88px + env(safe-area-inset-bottom));
-      width: auto;
-      max-height: calc(100svh - 200px);
-      overflow-y: auto;
-      padding: 24px;
-      /* desenfocar el vídeo que cambia en cada fotograma es muy caro en móvil */
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      background: var(--burdeos);
+    .wt__stage {
+      bottom: auto;
+      height: 100lvh;
     }
-    .world .sw-copy__title {
-      font-size: 1.875rem;
-      line-height: 2.25rem;
-    }
-    .world .sw-copy__body {
-      font-size: 1rem;
-      line-height: 1.5rem;
-    }
-    .world .sw-route {
-      display: none;
-    }
-    .world .sw-hint {
+    .wt__hint {
       bottom: auto;
       top: calc(96px + env(safe-area-inset-top));
-    }
-  }
-
-  /* Móvil vertical: el vídeo va a pantalla completa con su versión vertical (-m.mp4,
-     recorte 9:16) y la tarjeta se superpone abajo, compacta. */
-  @media (max-width: 860px) and (orientation: portrait) {
-    /* svh: alto fijo; con dvh el vídeo se redimensiona mientras la barra de
-       direcciones aparece y desaparece al hacer scroll. Subido un 14 % para que lo
-       importante (a media altura) quede por encima de la tarjeta. */
-    .world .sw-stage {
-      top: -14svh;
-      bottom: auto;
-      height: 100svh;
-    }
-    .world .sw-scene__video,
-    .world .sw-scene__still {
-      object-position: center center;
-    }
-    .world .sw-copy {
-      bottom: calc(80px + env(safe-area-inset-bottom));
-      max-height: calc(48svh - 16px);
-      padding: 16px;
-      border-radius: 16px;
-    }
-    .world .sw-copy__eyebrow {
-      font-size: 0.75rem;
-      line-height: 1rem;
-    }
-    .world .sw-copy__title {
-      font-size: 1.5rem;
-      line-height: 2rem;
-    }
-    .world .sw-copy__body {
-      margin-top: 8px;
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-    }
-    .world .sw-copy__cta,
-    .world .extra-actions,
-    .world .chips {
-      margin-top: 16px;
-    }
-    .world .chip {
-      font-size: 0.75rem;
-      line-height: 1rem;
     }
   }
 </style>

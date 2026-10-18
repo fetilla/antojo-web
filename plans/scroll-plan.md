@@ -69,6 +69,30 @@ medir en el teléfono real no sé cuál de las dos domina.
 
 ---
 
+## 2b. Mediciones F0 en los dispositivos del cliente (versión 33dd8df)
+
+Salto Nosotros → Zona de niños con `?debug=1`:
+
+| Métrica | Ordenador (Brave, macOS, 1728×879 @2x) | Móvil (Chrome 155, Android 10, 360×764 @3x) |
+|---|---|---|
+| fps de pantalla | **30** | 86 (pantalla de 90 Hz) |
+| fps de vídeo durante el scroll | 30 | **14,2** |
+| Hueco máximo | **1934 ms** (1 hueco de más de 100 ms) | **1277 ms** (3 huecos) |
+| Búsqueda en el vídeo p50 / p95 | 6 / 10 ms | **27 / 58 ms** |
+
+Conclusiones:
+- **P2 confirmado y localizado:** en el ordenador las búsquedas son rápidas, pero hay
+  una parada de casi 2 s. Encaja con la hipótesis 1: el cambio de `<video>` en las
+  uniones, o un tramo todavía sin listo. En el entorno de pruebas no aparece.
+  → **F1 (vídeo único) pasa a ser obligatoria.**
+- **Ordenador limitado a 30 fps:** afecta a todo el navegador. La causa probable es
+  el ahorro de energía de Brave/Chrome, que limita a 30 fps sin cargador. Se
+  documenta; no se puede corregir desde la web.
+- **P5 confirmado:** en el Android del cliente cada búsqueda tarda 27–58 ms y
+  van una a una, así que el vídeo se queda en ~14 fps. Ningún ajuste del `<video>`
+  lo arregla. → **F4.2 (secuencia de imágenes en `<canvas>`) pasa a ser la
+  solución para móvil**, sin esperar a otra medición.
+
 ## 3. Lección de las iteraciones anteriores
 
 He validado con Chrome sin interfaz, que **no reproduce el hardware del cliente**.
@@ -157,7 +181,7 @@ Créditos disponibles: 143,75. Presupuesto previsto: ~10–20 créditos con repe
 Si el resultado no convence tras 2 o 3 intentos, la alternativa sin créditos es la
 composición con fondo desenfocado hecha con ffmpeg.
 
-### F4 — Fluidez en móvil (P5), según lo que mida F0/F1
+### F4 — Fluidez en móvil (P5) — decidido tras F0: secuencia de imágenes
 1. Tras F1, medir en el teléfono del cliente con `?debug=1`.
    **Objetivo: ≥ 30 fps presentados durante el scroll y ningún hueco > 100 ms.**
 2. Si no se alcanza, y en iOS es probable, pasar el móvil a **secuencia de imágenes

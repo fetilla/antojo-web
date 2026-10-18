@@ -69,11 +69,33 @@ function hook(v: HTMLVideoElement) {
   v.requestVideoFrameCallback(cb);
 }
 
-new MutationObserver(() => document.querySelectorAll('video').forEach(hook)).observe(document.body, {
+// El recorrido en móvil es un <canvas>: cada imagen dibujada cuenta como fotograma presentado
+const hookedCanvas = new WeakSet<HTMLCanvasElement>();
+function hookCanvas(c: HTMLCanvasElement) {
+  if (hookedCanvas.has(c)) return;
+  hookedCanvas.add(c);
+  c.addEventListener('wt-frame', () => {
+    const t = now();
+    const s = scrolling();
+    if (lastPresented && s) {
+      const gap = t - lastPresented;
+      maxGapScrolling = Math.max(maxGapScrolling, gap);
+      if (gap > 100) gapsOver100++;
+    }
+    lastPresented = t;
+    presented.push({ t, scrolling: s });
+  });
+}
+
+new MutationObserver(() => {
+  document.querySelectorAll('video').forEach(hook);
+  document.querySelectorAll<HTMLCanvasElement>('canvas[data-walkthrough]').forEach(hookCanvas);
+}).observe(document.body, {
   childList: true,
   subtree: true,
 });
 document.querySelectorAll('video').forEach(hook);
+document.querySelectorAll<HTMLCanvasElement>('canvas[data-walkthrough]').forEach(hookCanvas);
 
 function env() {
   const mobile = matchMedia('(hover: none) and (pointer: coarse)').matches || matchMedia('(max-width: 860px)').matches;
@@ -81,7 +103,7 @@ function env() {
     version: __BUILD__,
     navegador: navigator.userAgent,
     pantalla: `${innerWidth}x${innerHeight} @${devicePixelRatio}x`,
-    videoServido: mobile ? 'móvil (-m.mp4)' : 'escritorio (.mp4)',
+    videoServido: document.querySelector('canvas[data-walkthrough]') ? 'móvil (imágenes en canvas)' : 'escritorio (vídeo único)',
     rVFC: supportsRVFC,
   };
 }

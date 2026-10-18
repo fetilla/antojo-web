@@ -44,6 +44,7 @@ const navClick = (p, mobile, id) =>
     : p.evaluate((id) => document.querySelector(`.island__link[href="#${id}"]`).click(), id);
 
 async function run(env, b, mobile) {
+  console.log(`· ${env}…`); // tarda ~1 min por entorno
   const p = await openPage(b, mobile);
   const errors = [];
   p.on('pageerror', (e) => errors.push(e.message));
@@ -104,12 +105,11 @@ async function run(env, b, mobile) {
     if (mobile) await p.touchscreen.tap(btn.x, btn.y); else await p.mouse.click(btn.x, btn.y);
     await sleep(1500);
   }
-  const carta = await p.evaluate(() => {
-    const d = document.querySelector('[data-carta]');
-    const ok = d?.open && d.querySelector('img').naturalWidth > 0;
-    d?.close();
-    return ok;
-  });
+  // espera a que la imagen de la carta (1 MB) termine de cargar
+  const carta = await p
+    .waitForFunction(() => { const d = document.querySelector('[data-carta]'); return d?.open && d.querySelector('img').naturalWidth > 0; }, { timeout: 8000 })
+    .then(() => true, () => false);
+  await p.evaluate(() => document.querySelector('[data-carta]')?.close());
   check(env, 'Carta se abre con imagen', !!carta, '');
   check(env, 'Sin errores de JavaScript', errors.length === 0, errors.slice(0, 2).join(' | '));
   await p.close();

@@ -1,0 +1,360 @@
+---
+// Tarjetas del recorrido: una por sección. walkthrough.ts las anima como un carrusel
+// vertical ligado al scroll; aquí solo se pinta su contenido.
+import Icon from './Icon.astro';
+import { cocina, etiquetas, secciones } from '../data/content';
+import { url } from '../lib/url';
+---
+
+{
+  secciones.map((s, i) => {
+    const Title = i === 0 ? 'h1' : 'h2';
+    return (
+      <article class="wt-card" id={`card-${s.id}`} data-card={s.id} style={`--accent:${s.accent}`} aria-labelledby={`card-${s.id}-title`}>
+        <p class="wt-card__eyebrow">{s.eyebrow}</p>
+        <Title class="wt-card__title" id={`card-${s.id}-title`}>{s.title}</Title>
+        <div class="wt-card__body" data-clamp>
+          <p>{s.body}</p>
+        </div>
+        <button class="wt-card__more" type="button" data-more hidden>
+          Leer más
+        </button>
+
+        {s.id === 'nosotros' && (
+          <ul class="chips" role="list">
+            {etiquetas.simples.map((t) => (
+              <li class="chip">
+                <Icon name={t.icon} />
+                {t.label}
+              </li>
+            ))}
+            <li class="chip-group">
+              <button class="chip chip--toggle" type="button" aria-expanded="false" aria-controls="eventos-opciones" data-eventos>
+                <Icon name="confetti" />
+                {etiquetas.eventos.label}
+                <Icon name="caret" class="chip__caret" />
+              </button>
+              <div class="chip-sub" id="eventos-opciones" data-eventos-sub>
+                <ul class="chip-sub__list" role="list">
+                  {etiquetas.eventos.opciones.map((o) => (
+                    <li class="chip chip--sub">
+                      <Icon name={o.icon} />
+                      {o.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </li>
+          </ul>
+        )}
+
+        {s.id === 'carta' && (
+          <div class="wt-card__cta">
+            <a class="btn btn--primary" href="#carta" data-open-carta>
+              <Icon name="book" />
+              Ver la carta
+            </a>
+          </div>
+        )}
+
+        {s.id === 'cocina' && (
+          <ul class="chips" role="list">
+            {cocina.map((c) =>
+              'media' in c ? (
+                <li>
+                  <button
+                    class="chip chip--toggle chip--media"
+                    type="button"
+                    aria-haspopup="dialog"
+                    data-open-media={url(c.media.src)}
+                    data-media-poster={url(c.media.poster)}
+                    data-media-title={c.media.title}
+                    data-media-alt={c.media.alt}
+                  >
+                    <Icon name={c.icon} />
+                    {c.label}
+                    <Icon name="play" class="chip__play" />
+                  </button>
+                </li>
+              ) : (
+                <li class="chip">
+                  <Icon name={c.icon} />
+                  {c.label}
+                </li>
+              ),
+            )}
+          </ul>
+        )}
+
+        {'cta' in s && s.cta && (
+          <div class="wt-card__cta">
+            <a class="btn btn--primary" href={s.cta.primary.href} {...(s.cta.primary.href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>
+              {s.cta.primary.label}
+            </a>
+            <a class="btn btn--ghost" href={s.cta.secondary.href} {...(s.cta.secondary.href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>
+              {s.cta.secondary.label}
+            </a>
+          </div>
+        )}
+      </article>
+    );
+  })
+}
+
+<style is:global>
+  .wt-card {
+    position: absolute;
+    left: 64px;
+    top: 50%;
+    translate: 0 -50%;
+    width: min(42vw, 480px);
+    box-sizing: border-box;
+    padding: 32px;
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--burdeos) 94%, transparent);
+    border: 1px solid color-mix(in srgb, var(--crema) 14%, transparent);
+    color: var(--crema);
+    opacity: 0;
+    visibility: hidden;
+    will-change: opacity, transform;
+  }
+
+  .wt-card__eyebrow {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gualda);
+  }
+
+  .wt-card__title {
+    margin: 8px 0 0;
+    font-size: 3rem;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--celeste);
+  }
+
+  .wt-card__body p {
+    margin: 16px 0 0;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    color: var(--crema-soft);
+  }
+
+  .wt-card__more {
+    margin-top: 4px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    color: var(--gualda);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    cursor: pointer;
+  }
+
+  .wt-card__more[hidden] {
+    display: none;
+  }
+
+  .wt-card__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  /* ---- etiquetas ---- */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--crema);
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+
+  .chip .icon {
+    color: var(--accent);
+  }
+
+  .chip-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .chip--toggle {
+    font-family: var(--font);
+    cursor: pointer;
+    transition:
+      background-color 700ms var(--ease),
+      transform 700ms var(--ease);
+  }
+
+  .chip--toggle:hover {
+    background: color-mix(in srgb, var(--accent) 32%, transparent);
+  }
+
+  .chip--toggle:active {
+    transform: scale(0.98);
+  }
+
+  .chip--media {
+    background: color-mix(in srgb, var(--accent) 34%, transparent);
+  }
+
+  .chip--toggle .chip__caret {
+    transition: transform 700ms var(--ease);
+  }
+
+  .chip--toggle[aria-expanded='true'] .chip__caret {
+    transform: rotate(180deg);
+  }
+
+  .chip-sub {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 700ms var(--ease);
+  }
+
+  .chip-sub.is-open {
+    grid-template-rows: 1fr;
+  }
+
+  .chip-sub__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0 0 0 16px;
+    list-style: none;
+  }
+
+  .chip--sub {
+    background: var(--gualda);
+    color: var(--tinta);
+    border-color: var(--gualda);
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 700ms var(--ease),
+      transform 700ms var(--ease);
+  }
+
+  .chip--sub .icon {
+    color: var(--tinta);
+  }
+
+  .chip-sub.is-open .chip--sub {
+    opacity: 1;
+    transform: none;
+  }
+
+  .chip-sub.is-open .chip--sub:nth-child(2) {
+    transition-delay: 100ms;
+  }
+
+  @media (max-width: 1100px) and (min-width: 861px) {
+    .wt-card__title {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+    }
+  }
+
+  /* ---- móvil: tarjeta compacta abajo, sobre el recorrido a pantalla completa ---- */
+  @media (max-width: 860px) {
+    .wt-card {
+      left: 16px;
+      right: 16px;
+      top: auto;
+      bottom: calc(88px + env(safe-area-inset-bottom));
+      translate: none;
+      width: auto;
+      max-height: 40svh;
+      overflow-y: auto;
+      padding: 16px;
+      border-radius: 16px;
+      background: var(--burdeos);
+    }
+    .wt-card__eyebrow {
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+    .wt-card__title {
+      margin-top: 4px;
+      font-size: 1.5rem;
+      line-height: 2rem;
+    }
+    .wt-card__body p {
+      margin-top: 8px;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
+    /* texto en 3 líneas con "Leer más" */
+    .wt-card__body:not(.is-open) p {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    /* etiquetas en una sola fila deslizable */
+    .wt-card .chips {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      margin: 12px -16px 0;
+      padding: 0 16px 4px;
+      scrollbar-width: none;
+    }
+    .wt-card .chips::-webkit-scrollbar {
+      display: none;
+    }
+    .wt-card .chip-group {
+      flex-direction: row;
+    }
+    .wt-card .chip-sub {
+      grid-template-rows: none;
+      grid-template-columns: 0fr;
+      transition: grid-template-columns 700ms var(--ease);
+    }
+    .wt-card .chip-sub.is-open {
+      grid-template-columns: 1fr;
+    }
+    .wt-card .chip-sub__list {
+      flex-wrap: nowrap;
+      min-width: 0;
+      padding: 0;
+    }
+    .wt-card .chip {
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+    .wt-card__cta {
+      margin-top: 12px;
+    }
+  }
+</style>

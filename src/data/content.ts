@@ -21,19 +21,23 @@ export const seo = {
     'Bar Antojo en Utiel: comida callejera de todo el mundo hecha con ahumador, horno de brasas y baja temperatura. Zona de niños, pet friendly y opciones sin gluten.',
 };
 
-// Una entrada por tramo del recorrido en vídeo (ver plans/landing-antojo-scroll-world.md).
+// Secciones del recorrido (ver plans/scroll-plan.md).
+// `frame`: fotograma del vídeo (24 fps, 0–720) donde la cámara se para en la sección.
+// `scroll`: largo de la sección en alturas de pantalla. `travel`: parte de ese largo en la
+// que la cámara viaja desde la parada anterior; el resto es la parada.
+// `poster`: imagen fija de la parada (public/posters).
 export const secciones = [
   {
     id: 'inicio',
     label: 'Inicio',
-    clip: 's0-entrada',
-    duration: 1.04, // segundos del clip (para los saltos del menú)
+    frame: 0,
+    scroll: 0.3,
+    travel: 0,
+    poster: 's0-entrada',
     accent: '#F2B705',
     eyebrow: 'Bar Antojo · Utiel',
     title: 'Date el gusto, en familia',
     body: 'Comida callejera de medio mundo hecha con humo, brasa y paciencia. Tú disfrutas en la mesa y los peques en su zona.',
-    scroll: 0.3,
-    linger: 0,
     cta: {
       primary: { label: 'Cómo llegar', href: contacto.mapsHref },
       secondary: { label: 'Escríbenos por WhatsApp', href: contacto.whatsappHref },
@@ -42,60 +46,64 @@ export const secciones = [
   {
     id: 'nosotros',
     label: 'Nosotros',
-    clip: 's1-nosotros',
-    duration: 4.04, // segundos del clip (para los saltos del menú)
+    frame: 120,
+    scroll: 0.65,
+    travel: 0.55,
+    poster: 's1-nosotros',
     accent: '#F2B705',
     eyebrow: 'Nosotros',
     title: 'Cocina viajada, servida en casa',
     body: 'Antojo surge de la pasión por la cocina de una familia que, habiendo trabajado alrededor del mundo en diferentes restaurantes, decide entregar lo aprendido a su gente. Pensando en los pequeños de la casa: un sitio familiar y a la vez canalla.',
-    scroll: 0.62,
-    linger: 0,
-    travel: 0.5,
   },
   {
     id: 'carta',
     label: 'Carta',
-    clip: 's2-carta',
-    duration: 10.04, // segundos del clip (para los saltos del menú)
+    frame: 360,
+    scroll: 0.8,
+    travel: 0.6,
+    poster: 's2-carta',
     accent: '#7CC6E8',
     eyebrow: 'Carta',
     title: 'Sabores con pasaporte',
     body: 'Pincha para ver nuestros sabores más callejeros.',
-    scroll: 0.75,
-    linger: 0,
-    travel: 0.55,
   },
   {
     id: 'cocina',
     label: 'Cocina',
-    clip: 's3-cocina',
-    duration: 5.04, // segundos del clip (para los saltos del menú)
+    frame: 480,
+    scroll: 0.6,
+    travel: 0.5,
+    poster: 's3-cocina',
     accent: '#F2B705',
     eyebrow: 'Cocina',
     title: 'Street world food',
     body: 'Nos centramos en sabores que llamamos street world food: fuego, humo y técnica para una cocina con carácter.',
-    scroll: 0.62,
-    linger: 0,
-    travel: 0.5,
   },
   {
     id: 'ninos',
     label: 'Zona de niños',
-    clip: 's4-ninos',
-    duration: 10.04, // segundos del clip (para los saltos del menú)
+    frame: 720,
+    scroll: 0.85,
+    travel: 0.6,
+    poster: 's4-ninos',
     accent: '#7CC6E8',
     eyebrow: 'Zona de niños',
     title: 'Disfrutas tú, disfrutan ellos',
     body: 'Trae a tu familia a disfrutar. Los peques tienen su rincón para jugar mientras tú comes con calma.',
-    scroll: 0.85,
-    linger: 0,
-    travel: 0.55,
     cta: {
       primary: { label: 'Contáctanos', href: '#contacto' },
       secondary: { label: 'Escríbenos por WhatsApp', href: contacto.whatsappHref },
     },
   },
 ] as const;
+
+// Recursos del recorrido (scripts/encode-video.sh)
+export const recorrido = {
+  fps: 24,
+  frames: 721,
+  video: '/video/recorrido.mp4', // escritorio
+  movil: { fps: 12, frames: 361, ruta: (i: number) => `/frames/${String(i).padStart(4, '0')}.jpg` },
+};
 
 export const etiquetas = {
   simples: [

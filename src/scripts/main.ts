@@ -1,68 +1,67 @@
-import { mountScrollWorld } from './scrub-engine.js';
-import { secciones } from '../data/content';
+import { mountWalkthrough } from './walkthrough';
+import { FrameRenderer, VideoRenderer, type Renderer } from './renderers';
+import { recorrido, secciones } from '../data/content';
 import { url } from '../lib/url';
 
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const touch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+// Móvil = táctil o pantalla estrecha: secuencia de imágenes vertical en <canvas>
+const mobile = touch || window.matchMedia('(max-width: 860px)').matches;
 const world = document.getElementById('world');
 const ids = secciones.map((s) => s.id);
 
-// ---- Recorrido en vídeo ----
-const api = world
-  ? mountScrollWorld(world, {
-      nav: false,
-      atmosphere: false,
-      hint: 'Desliza para entrar',
-      diveScroll: 1.4,
-      crossfade: 0.08,
-      copyFade: 0.18,
-      onSection: markSection,
-      sections: secciones.map((s) => ({
-        id: s.id,
-        label: s.label,
-        accent: s.accent,
-        eyebrow: s.eyebrow,
-        title: s.title,
-        body: s.body,
-        scroll: s.scroll,
-        linger: s.linger,
-        travel: 'travel' in s ? s.travel : 0,
-        duration: s.duration,
-        cta: 'cta' in s ? s.cta : undefined,
-        clip: url(`/video/${s.clip}.mp4`),
-        clipMobile: url(`/video/${s.clip}-m.mp4`),
-        still: url(`/posters/${s.clip}.jpg`),
-        stillMobile: url(`/posters/${s.clip}-m.jpg`),
-      })),
-      connectors: secciones.slice(1).map(() => null),
-    })
-  : null;
-
+// ---- Recorrido ----
+let api: ReturnType<typeof mountWalkthrough> | null = null;
 if (world) {
-  const copies = world.querySelectorAll<HTMLElement>('.sw-copy');
+  const stage = world.querySelector<HTMLElement>('[data-stage]')!;
+  const poster = world.querySelector<HTMLImageElement>('[data-poster]')!;
+  const renderer: Renderer = mobile
+    ? new FrameRenderer(
+        (i) => url(recorrido.movil.ruta(i)),
+        recorrido.movil.frames,
+        recorrido.fps / recorrido.movil.fps,
+        secciones.map((s) => Math.round(s.frame / (recorrido.fps / recorrido.movil.fps))),
+        poster,
+      )
+    : new VideoRenderer(url(recorrido.video), recorrido.fps, recorrido.frames, poster);
+  stage.appendChild(renderer.el);
 
-  copies.forEach((copy, i) => {
-    copy.id = `copy-${ids[i]}`;
-    // Contenido interactivo de cada sección
-    const tpl = document.querySelector<HTMLTemplateElement>(`template[data-extra="${ids[i]}"]`);
-    if (tpl) {
-      const cta = copy.querySelector('.sw-copy__cta');
-      copy.insertBefore(tpl.content.cloneNode(true), cta);
-    }
-    // Los enlaces externos del motor se abren en otra pestaña
-    copy.querySelectorAll<HTMLAnchorElement>('a[href^="http"]').forEach((a) => {
-      a.target = '_blank';
-      a.rel = 'noopener';
-    });
+  api = mountWalkthrough({
+    sections: secciones.map((s) => ({ id: s.id, frame: s.frame, scroll: s.scroll, travel: s.travel })),
+    renderer,
+    cards: [...world.querySelectorAll<HTMLElement>('[data-card]')],
+    track: world.querySelector<HTMLElement>('[data-track]')!,
+    progress: world.querySelector<HTMLElement>('[data-progress]') ?? undefined,
+    hint: world.querySelector<HTMLElement>('[data-hint]') ?? undefined,
+    touch,
+    reduce,
+    onSection: (k) => {
+      markSection(k);
+      // con movimiento reducido no hay vídeo: se muestra la imagen de la parada
+      if (reduce) {
+        const base = `/posters/${secciones[k].poster}${mobile ? '-m' : ''}.jpg`;
+        poster.src = url(base);
+        poster.parentElement?.querySelector('source')?.setAttribute('srcset', url(base));
+      }
+    },
   });
 
-  // El título del inicio es el h1 de la página
-  const firstTitle = copies[0]?.querySelector('h2');
-  if (firstTitle) {
-    const h1 = document.createElement('h1');
-    h1.className = firstTitle.className;
-    h1.textContent = firstTitle.textContent;
-    firstTitle.replaceWith(h1);
-  }
+  // "Leer más" en las tarjetas compactas de móvil (solo si el texto no cabe)
+  world.querySelectorAll<HTMLElement>('[data-clamp]').forEach((body) => {
+    const more = body.parentElement?.querySelector<HTMLButtonElement>('[data-more]');
+    const p = body.querySelector('p');
+    if (!more || !p) return;
+    const update = () => {
+      if (body.classList.contains('is-open')) return;
+      more.hidden = p.scrollHeight <= p.clientHeight + 1;
+    };
+    more.addEventListener('click', () => {
+      const open = body.classList.toggle('is-open');
+      more.textContent = open ? 'Leer menos' : 'Leer más';
+    });
+    document.fonts.ready.then(update);
+    window.addEventListener('resize', update);
+  });
 }
 
 // ---- Navegación ----
@@ -81,7 +80,7 @@ function setCurrent(id: string) {
 function goTo(id: string) {
   const behavior: ScrollBehavior = reduce ? 'auto' : 'smooth';
   if (id === 'inicio') {
-    if (api) api.jumpTo(0, { top: 0 });
+    if (api) api.jumpTo(0);
     else window.scrollTo({ top: 0, behavior });
     return;
   }
